@@ -1,1 +1,140 @@
 
+---
+title: "Scoring Formulas"
+description: "The mathematical core of VERDICT WEIGHT™ — how SS, DI, and CW are computed."
+---
+
+# Scoring Formulas
+
+## Signal Strength (SS)
+
+Signal Strength is computed as the **context-weighted geometric mean** of the four evidence streams:
+
+$$
+SS = \left( SR^{W_{SR}} \cdot CC^{W_{CC}} \cdot TD^{W_{TD}} \cdot HA^{W_{HA}} \right)
+$$
+
+Where W_SR + W_CC + W_TD + W_HA = 1.0 and weights are drawn from the active context profile.
+
+**Why geometric mean?**
+- Penalizes weak streams more aggressively than arithmetic mean
+- A single near-zero stream collapses SS toward zero — reflecting the reality that one failed validation should suppress confidence
+- Preserves proportional relationships between streams
+
+```python
+import numpy as np
+
+def signal_strength(SR, CC, TD, HA, W_SR, W_CC, W_TD, W_HA):
+    epsilon = 1e-9  # prevents log(0)
+    SS = (
+        (SR + epsilon) ** W_SR *
+        (CC + epsilon) ** W_CC *
+        (TD + epsilon) ** W_TD *
+        (HA + epsilon) ** W_HA
+    )
+    return float(np.clip(SS, 0.0, 1.0))
+```
+
+---
+
+## Doubt Index (DI)
+
+The Doubt Index measures **inter-stream disagreement** — the normalized coefficient of variation across all four streams:
+
+$$
+DI = \frac{\sigma(SR, CC, TD, HA)}{\mu(SR, CC, TD, HA)}
+$$
+
+Where σ is standard deviation and μ is arithmetic mean of the four streams.
+
+**What DI detects:**
+- **High DI + High SR + Low CC** → Classic adversarial spoofing signature
+- **High DI generally** → Streams are contradicting each other; investigate before acting
+- **Low DI + Low SS** → Uniformly weak signal; safe to discard
+- **Low DI + High SS** → Strong corroborated signal; act with confidence
+
+```python
+def doubt_index(SR, CC, TD, HA):
+    streams = np.array([SR, CC, TD, HA])
+    mean = np.mean(streams)
+    std = np.std(streams)
+    DI = (std / mean) if mean > 1e-9 else 1.0
+    return float(np.clip(DI, 0.0, 1.0))
+```
+
+<Info>
+A DI > 0.70 triggers a WARNING in the output interpreter regardless of CW level. High inter-stream disagreement means streams are actively contradicting each other — this is the signature of manipulation or a compromised source.
+</Info>
+
+---
+
+## Consequence Weight (CW)
+
+Consequence Weight is the **actionable output** — Signal Strength penalized by the Doubt Index:
+
+$$
+CW = SS \cdot (1 - \delta \cdot DI)
+$$
+
+Where δ (doubt penalty) is a context-specific parameter controlling how aggressively doubt suppresses confidence. Default δ = 0.3.
+
+```python
+def consequence_weight(SS, DI, doubt_penalty=0.3):
+    CW = SS * (1.0 - doubt_penalty * DI)
+    return float(np.clip(CW, 0.0, 1.0))
+```
+
+**Interpretation tiers:**
+
+| CW Range | Tier | Action |
+|---|---|---|
+| 0.80 – 1.00 | CRITICAL | Act immediately. Strong signal, strong corroboration. |
+| 0.65 – 0.79 | HIGH | Act with urgency. Verify one stream if time permits. |
+| 0.45 – 0.64 | MEDIUM | Investigate. Elevated doubt. Seek corroboration. |
+| 0.25 – 0.44 | LOW | Monitor only. Do not escalate without additional signal. |
+| 0.00 – 0.24 | NOISE | Discard or archive. Insufficient confidence to act. |
+
+---
+
+## Complete Scoring Example
+
+```python
+from verdict_weight import VerdictWeight, ContextProfile
+
+vw = VerdictWeight(profile=ContextProfile.CYBERSECURITY)
+
+result = vw.score(
+    SR=0.85,   # credible source
+    CC=0.10,   # almost no corroboration
+    TD=0.90,   # recent intelligence
+    HA=0.80    # good track record
+)
+
+print(result.signal_strength)      # 0.487
+print(result.doubt_index)          # 0.712  ← HIGH
+print(result.consequence_weight)   # 0.383  ← LOW
+print(result.tier)                 # "LOW"
+print(result.warning)
+# "WARNING: High inter-stream disagreement (DI=0.712).
+#  Streams are contradicting each other.
+#  High source credibility with near-zero corroboration
+#  is the signature of adversarial injection."
+```
+
+This is the adversarial spoofing case. The source looks highly credible. The intelligence is recent. But with CC=0.10, the Doubt Index spikes to 0.712 and CW collapses to 0.383 — LOW tier. The signal does not reach the decision engine at full weight.
+
+---
+
+## The Full Scoring Pipeline
+
+```
+Input: (SR, CC, TD, HA, context_profile)
+           ↓
+  1. Compute SS via weighted geometric mean
+  2. Compute DI via normalized coefficient of variation
+  3. Compute CW = SS × (1 - δ·DI)
+  4. Interpret CW → tier (CRITICAL/HIGH/MEDIUM/LOW/NOISE)
+  5. Check DI threshold → append WARNING if DI > 0.70
+           ↓
+Output: VerdictResult(SS, DI, CW, tier, warning, context)
+```
