@@ -1,0 +1,74 @@
+---
+title: "The Problem"
+description: "Why autonomous AI systems cannot trust their own inputs — and why existing approaches fail."
+---
+
+# The Problem
+
+## Autonomous AI Systems Cannot Trust Their Own Inputs
+
+Every autonomous AI system — every agent, every RAG pipeline, every intelligence platform — makes decisions based on signals it receives from external sources. Those signals are treated as inputs to a reasoning engine. The reasoning engine decides what to do.
+
+The structural vulnerability is not in the reasoning engine. It is in the signals feeding it.
+
+Today, most autonomous AI systems:
+
+1. Ingest signals from multiple sources simultaneously
+2. Apply equal weight to those signals — or defer to a single primary source
+3. Pass the weighted result to the decision layer
+
+This architecture has one critical flaw: **a high-credibility spoofed signal is indistinguishable from a high-credibility real signal.**
+
+## The Five Failure Modes
+
+| Failure Mode | What Happens | Impact |
+|---|---|---|
+| **Source Spoofing** | Adversary injects a signal from a mimicked high-credibility source | Agent acts on false intelligence at full confidence |
+| **Corroboration Flooding** | Adversary floods multiple low-quality sources with the same message | Naive corroboration count inflates confidence on fabricated intelligence |
+| **Temporal Blindness** | System acts on stale intelligence without decay | Outdated signals drive current decisions |
+| **Historical Blindness** | System cannot distinguish a source with a bad track record | High nominal credibility, poor actual accuracy |
+| **Equal Weighting** | All streams weighted identically regardless of context | Suboptimal confidence in every domain |
+
+## Why Existing Approaches Fail
+
+<AccordionGroup>
+  <Accordion title="Single-source scoring">
+    Most confidence systems rely on a single primary source credibility score. If that source is compromised or spoofed, there is no downstream check. The confidence score looks legitimate. The agent acts.
+  </Accordion>
+  <Accordion title="Naive corroboration counting">
+    Counting the number of agreeing sources without weighting their independence allows corroboration flooding — an adversary creates or compromises multiple low-quality sources and manufactures agreement.
+  </Accordion>
+  <Accordion title="Static weight profiles">
+    A nation-state APT scenario and a real-time fraud detection scenario have fundamentally different signal reliability dynamics. A single static weight profile produces suboptimal results in both.
+  </Accordion>
+  <Accordion title="No adversarial suppression">
+    Current systems have no mechanism to detect the signature pattern of adversarial injection: high source credibility combined with zero independent corroboration. VERDICT WEIGHT™'s Doubt Index makes this pattern explicit.
+  </Accordion>
+</AccordionGroup>
+
+## The Empirical Case
+
+VERDICT WEIGHT™ was validated against 10,000 synthetic scenarios across five intelligence profiles:
+
+| Profile | Description | True Positive Rate |
+|---|---|---|
+| HIGH | All streams strong (>0.65) | 88% |
+| MEDIUM | Mixed streams (0.35–0.70) | 58% |
+| LOW | All streams weak (<0.45) | 18% |
+| ADVERSARIAL | High SR, near-zero CC | 35% |
+| STALE | High SR/CC, near-zero TD | 50% |
+
+The adversarial profile is the critical case. A naive system scores it HIGH — the source looks credible. VERDICT WEIGHT™ scores it **NOISE** (CW=0.136). That gap is the problem this framework solves.
+
+## The Market That Has This Problem
+
+Every system making autonomous decisions from multi-source data has this problem today:
+
+- **Enterprise RAG pipelines** — LLMs retrieving from multiple knowledge sources with no confidence layer
+- **Financial fraud detection** — transaction signals, behavioral biometrics, device fingerprints, external threat feeds
+- **Autonomous vehicles** — camera, LiDAR, radar, GPS sensor fusion
+- **Intelligence platforms** — OSINT, SIGINT, HUMINT, IMINT combination
+- **Healthcare AI** — diagnostic signals from multiple imaging modalities
+- **Legal eDiscovery** — AI-surfaced evidence from emails, documents, metadata
+
+The problem is not domain-specific. It is architectural. VERDICT WEIGHT™ provides the architectural fix.

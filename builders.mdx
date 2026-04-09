@@ -1,0 +1,115 @@
+---
+title: "For Builders"
+description: "Practical guidance for organizations implementing VERDICT WEIGHT™."
+---
+
+# For Builders
+
+## Who Should Implement VERDICT WEIGHT™
+
+VERDICT WEIGHT™ is designed for any system making autonomous decisions from multi-source data. If your system ingests signals from more than one source and acts on them — you have the confidence gap this framework closes.
+
+<CardGroup cols={2}>
+  <Card title="Enterprise RAG" icon="database">
+    Score confidence on retrieved context before it reaches your LLM. Prevent hallucination amplification from low-quality retrieval.
+  </Card>
+  <Card title="Fraud Detection" icon="shield">
+    Synthesize transaction signals, behavioral biometrics, device fingerprints, and threat feeds into a single calibrated score.
+  </Card>
+  <Card title="Intelligence Platforms" icon="satellite">
+    Formalize OSINT/SIGINT/HUMINT/IMINT fusion with mathematically auditable confidence scores.
+  </Card>
+  <Card title="Healthcare AI" icon="heart-pulse">
+    Score diagnostic confidence across imaging modalities, lab values, and clinical notes with domain-tuned decay rates.
+  </Card>
+  <Card title="Autonomous Vehicles" icon="car">
+    Apply near-real-time confidence scoring to sensor fusion (camera, LiDAR, radar, GPS) for safety-critical decisions.
+  </Card>
+  <Card title="Legal eDiscovery" icon="scale-balanced">
+    Produce Daubert-defensible confidence scores on AI-surfaced evidence. Testable, peer-reviewed, known error rate.
+  </Card>
+</CardGroup>
+
+---
+
+## Integration Patterns
+
+### Pattern 1: Pre-Decision Scoring
+
+Insert VERDICT WEIGHT™ between your intelligence ingestion layer and your decision engine:
+
+```
+Intelligence Sources → [VERDICT WEIGHT™] → Decision Engine
+```
+
+Only signals above your CW threshold reach the decision layer. Signals with high DI are flagged for review.
+
+### Pattern 2: RAG Confidence Gating
+
+Score retrieved documents before injecting into LLM context:
+
+```python
+retrieved_docs = retriever.get(query)
+for doc in retrieved_docs:
+    result = vw.score(
+        SR=doc.source_reliability,
+        CC=doc.corroboration_count,
+        TD=doc.temporal_score,
+        HA=doc.historical_accuracy
+    )
+    if result.consequence_weight >= 0.45:
+        context.append(doc)
+```
+
+### Pattern 3: Alert Triage
+
+Use CW tiers to prioritize analyst workload:
+
+```python
+result = vw.score(SR, CC, TD, HA)
+
+if result.tier == "CRITICAL":
+    alert_manager.escalate_immediately(signal)
+elif result.tier == "HIGH":
+    alert_manager.queue_priority(signal)
+elif result.tier in ["MEDIUM", "LOW"]:
+    alert_manager.queue_standard(signal)
+else:
+    alert_manager.archive(signal)
+```
+
+---
+
+## Licensing
+
+| Use Case | License Required |
+|---|---|
+| Research and evaluation | Open — no license required |
+| Internal prototype / proof of concept | Open — no license required |
+| Production deployment | Commercial license required |
+| Embedded in commercial product | OEM license required |
+| Government / defense use | Contact for terms |
+
+**Contact:** [andre.byrd@odingard.com](mailto:andre.byrd@odingard.com)
+
+---
+
+## Getting Started
+
+<Steps>
+  <Step title="Install the SDK">
+    `pip install verdict-weight`
+  </Step>
+  <Step title="Choose your profile">
+    Select the context profile that matches your domain from the [12 validated profiles](/framework/profiles).
+  </Step>
+  <Step title="Compute your input streams">
+    Map your data to SR, CC, TD, and HA. See [stream definitions](/framework/streams) for computation guidance.
+  </Step>
+  <Step title="Score and act">
+    Use CW tier and DI warning to gate your decision engine.
+  </Step>
+  <Step title="Contact for production license">
+    Email [andre.byrd@odingard.com](mailto:andre.byrd@odingard.com) before production deployment.
+  </Step>
+</Steps>
