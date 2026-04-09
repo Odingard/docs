@@ -24,21 +24,11 @@
     "name": "Paper (SSRN)",
     "url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6532658"
   },
-  "tabs": [
-    {
-      "name": "Specification",
-      "url": "/"
-    },
-    {
-      "name": "SDK & Integration",
-      "url": "/sdk"
-    }
-  ],
   "navigation": [
     {
       "group": "Overview",
       "pages": [
-        "introduction",
+        "index",
         "problem",
         "definition",
         "working-group",
