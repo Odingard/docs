@@ -28,7 +28,7 @@
     {
       "group": "Overview",
       "pages": [
-        "index",
+        "introduction",
         "problem",
         "definition",
         "working-group",
@@ -60,6 +60,12 @@
       "pages": [
         "research/aligned"
       ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/introduction"
     }
   ],
   "footerSocials": {
