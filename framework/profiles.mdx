@@ -1,1 +1,223 @@
 
+---
+title: "Context Profiles"
+description: "The 12 domain-specific weight profiles that make VERDICT WEIGHT™ context-adaptive."
+---
+
+# Context Profiles
+
+Different operational domains have fundamentally different signal reliability dynamics. A weight profile optimized for cybersecurity threat intelligence produces suboptimal results in healthcare diagnostics. VERDICT WEIGHT™ solves this with 12 validated context profiles.
+
+## Profile Architecture
+
+Each profile specifies four weights (summing to 1.0) and a domain-specific temporal decay rate (λ):
+
+```python
+@dataclass
+class WeightProfile:
+    W_SR: float      # Source Reliability weight
+    W_CC: float      # Corroboration Count weight
+    W_TD: float      # Temporal Decay weight
+    W_HA: float      # Historical Accuracy weight
+    lambda_td: float # Temporal decay rate
+    doubt_penalty: float = 0.3
+```
+
+---
+
+## The 12 Validated Profiles
+
+### Cybersecurity (General)
+Best for: SOC operations, threat feeds, vulnerability intelligence
+
+| Stream | Weight | Rationale |
+|---|---|---|
+| SR | 0.35 | Source quality matters most in cyber |
+| CC | 0.25 | Corroboration validates threat reality |
+| TD | 0.20 | Threats evolve; recency critical |
+| HA | 0.20 | Track record confirms source value |
+| λ_td | 0.15 | Moderate decay — daily relevance |
+
+---
+
+### APT / Nation-State
+Best for: Advanced Persistent Threat attribution, state-sponsored activity
+
+| Stream | Weight |
+|---|---|
+| SR | 0.25 |
+| CC | **0.40** |
+| TD | 0.20 |
+| HA | 0.15 |
+| λ_td | 0.10 |
+
+*Corroboration is dominant. Attribution claims without multi-source agreement are unreliable.*
+
+---
+
+### Zero-Day / Exploit Intelligence
+Best for: Active exploit tracking, CVE validation, zero-day confirmation
+
+| Stream | Weight |
+|---|---|
+| SR | 0.30 |
+| CC | 0.20 |
+| TD | **0.35** |
+| HA | 0.15 |
+| λ_td | 0.30 |
+
+*Temporal decay is dominant. A zero-day patched last week is irrelevant today.*
+
+---
+
+### Disinformation Detection
+Best for: Information operations, influence campaign detection, narrative analysis
+
+| Stream | Weight |
+|---|---|
+| SR | 0.20 |
+| CC | **0.40** |
+| TD | 0.15 |
+| HA | **0.25** |
+| λ_td | 0.05 |
+
+*Corroboration and historical accuracy are dominant. Disinformation relies on manufactured credibility without genuine independent agreement.*
+
+---
+
+### Healthcare / Clinical Diagnostics
+Best for: AI diagnostic systems, medical imaging, clinical decision support
+
+| Stream | Weight |
+|---|---|
+| SR | **0.40** |
+| CC | 0.30 |
+| TD | 0.10 |
+| HA | 0.20 |
+| λ_td | 0.02 |
+
+*Source reliability is dominant. Clinical source quality determines diagnostic validity. Very slow temporal decay — conditions persist.*
+
+---
+
+### Drug Safety / Pharmacovigilance
+Best for: Adverse event detection, drug interaction signals, post-market surveillance
+
+| Stream | Weight |
+|---|---|
+| SR | 0.35 |
+| CC | **0.35** |
+| TD | 0.15 |
+| HA | 0.15 |
+| λ_td | 0.05 |
+
+---
+
+### Financial Fraud Detection
+Best for: Transaction fraud, identity fraud, account takeover
+
+| Stream | Weight |
+|---|---|
+| SR | 0.30 |
+| CC | **0.35** |
+| TD | 0.25 |
+| HA | 0.10 |
+| λ_td | 0.20 |
+
+*Fraud patterns shift weekly. Corroboration across independent signals (device, behavioral, transaction) is the key discriminator.*
+
+---
+
+### Market Intelligence
+Best for: Financial market signals, analyst forecasts, economic indicators
+
+| Stream | Weight |
+|---|---|
+| SR | 0.25 |
+| CC | 0.30 |
+| TD | **0.30** |
+| HA | 0.15 |
+| λ_td | 0.25 |
+
+---
+
+### Defense / Intelligence Community
+Best for: OSINT/SIGINT/HUMINT/IMINT fusion, military intelligence, threat assessment
+
+| Stream | Weight |
+|---|---|
+| SR | 0.30 |
+| CC | **0.35** |
+| TD | 0.20 |
+| HA | 0.15 |
+| λ_td | 0.10 |
+
+*Multi-INT corroboration is the gold standard. Single-source intelligence without cross-INT validation is treated as low confidence.*
+
+---
+
+### Autonomous Vehicle Sensor Fusion
+Best for: Camera/LiDAR/radar/GPS fusion, ADAS decision systems
+
+| Stream | Weight |
+|---|---|
+| SR | 0.25 |
+| CC | **0.40** |
+| TD | **0.25** |
+| HA | 0.10 |
+| λ_td | 2.0 |
+
+*Near-real-time decay (λ=2.0 — seconds matter). Sensor corroboration is dominant for safety-critical decisions.*
+
+---
+
+### Legal / eDiscovery
+Best for: AI-surfaced evidence, document review, evidentiary confidence
+
+| Stream | Weight |
+|---|---|
+| SR | **0.40** |
+| CC | 0.30 |
+| TD | 0.15 |
+| HA | 0.15 |
+| λ_td | 0.03 |
+
+*Source reliability is dominant for Daubert admissibility. Evidence quality determines courtroom viability.*
+
+---
+
+### Enterprise RAG / LLM Systems
+Best for: Retrieval-Augmented Generation, enterprise knowledge bases, AI assistants
+
+| Stream | Weight |
+|---|---|
+| SR | 0.30 |
+| CC | **0.35** |
+| TD | 0.20 |
+| HA | 0.15 |
+| λ_td | 0.08 |
+
+*The largest addressable market. Every enterprise LLM retrieving from multiple knowledge sources needs this layer.*
+
+---
+
+## Custom Profile Creation
+
+Organizations can define custom profiles for proprietary domains:
+
+```python
+from verdict_weight import WeightProfile, VerdictWeight
+
+custom_profile = WeightProfile(
+    W_SR=0.40,
+    W_CC=0.30,
+    W_TD=0.15,
+    W_HA=0.15,
+    lambda_td=0.12,
+    doubt_penalty=0.35
+)
+
+vw = VerdictWeight(profile=custom_profile)
+```
+
+Custom profiles require commercial licensing. See [licensing terms](https://github.com/Odingard/verdict-weight/blob/main/LICENSE).
