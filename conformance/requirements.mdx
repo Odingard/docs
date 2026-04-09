@@ -1,17 +1,17 @@
 ---
-title: "Conformance Requirements"
-description: "What a system must do to claim VERDICT WEIGHT™ conformance."
+title: Conformance Requirements
+description: "What a system must do to claim VERDICT WEIGHT conformance."
 ---
 
 # Conformance Requirements
 
-To claim VERDICT WEIGHT™ conformance, a system must satisfy the following requirements. Requirements are categorized as MUST (baseline) or SHOULD (extended).
+To claim VERDICT WEIGHT conformance, a system must satisfy the following requirements. Requirements are categorized as MUST (baseline) or SHOULD (extended).
 
 ## Conformance Levels
 
-**VERDICT WEIGHT™ Core** — Satisfies R1–R5. Baseline confidence synthesis guarantees.
+**VERDICT WEIGHT Core** — Satisfies R1-R5. Baseline confidence synthesis guarantees.
 
-**VERDICT WEIGHT™ Extended** — Satisfies R1–R9. Full adversarial robustness and operational maturity.
+**VERDICT WEIGHT Extended** — Satisfies R1-R9. Full adversarial robustness and operational maturity.
 
 ---
 
@@ -25,7 +25,7 @@ To claim VERDICT WEIGHT™ conformance, a system must satisfy the following requ
 | R4 | MUST | **Consequence Weight** — CW must integrate SS and DI via the specified penalization formula |
 | R5 | MUST | **Five-tier output** — System must produce CRITICAL/HIGH/MEDIUM/LOW/NOISE classifications |
 | R6 | SHOULD | **Context profiles** — System should support at least one named domain profile with validated weights |
-| R7 | SHOULD | **Temporal decay** — TD should be computed via exponential decay with domain-specific λ |
+| R7 | SHOULD | **Temporal decay** — TD should be computed via exponential decay with domain-specific lambda |
 | R8 | SHOULD | **DI warning threshold** — System should surface explicit WARNING when DI > 0.70 |
 | R9 | SHOULD | **Adaptive learning** — System should record outcome feedback for calibration improvement |
 
@@ -49,8 +49,6 @@ result = vw.score(SR=0.85, CC=0.85, TD=0.85, HA=0.85)
 
 SS must be computed as the weighted geometric mean. Arithmetic mean or other aggregation methods do not satisfy R2.
 
-$$SS = \prod_{i} s_i^{W_i}$$
-
 ---
 
 ## R3: Doubt Index
@@ -67,22 +65,16 @@ CW must decrease as DI increases. A system where CW = SS always does not satisfy
 
 ## R5: Five-Tier Output
 
-The output tier must map CW to one of exactly five named tiers with the specified thresholds. Custom threshold tuning is permitted within ±0.05 of the specification defaults.
+The output tier must map CW to one of exactly five named tiers with the specified thresholds. Custom threshold tuning is permitted within plus or minus 0.05 of the specification defaults.
 
 ---
 
 ## Claiming Conformance
 
-Organizations implementing VERDICT WEIGHT™ in production systems may claim conformance after:
+Organizations implementing VERDICT WEIGHT in production systems may claim conformance after:
 
-1. Running the [conformance test suite](./testing) against their implementation
+1. Running the conformance test suite against their implementation
 2. Verifying all MUST requirements pass
 3. Disclosing which SHOULD requirements are satisfied
-
-Reference the conformance claim as:
-```
-Implements VERDICT WEIGHT™ Core [or Extended] Conformance
-Per specification v3.0 — https://verdictweight.dev
-```
 
 Commercial deployments require a license agreement. Research and evaluation use is permitted under the open license.

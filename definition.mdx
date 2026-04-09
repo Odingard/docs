@@ -1,24 +1,24 @@
 ---
-title: "What is VERDICT WEIGHT™"
+title: What is VERDICT WEIGHT
 description: "A precise definition of the framework, its scope, and what it is not."
 ---
 
-# What is VERDICT WEIGHT™?
+# What is VERDICT WEIGHT?
 
-**VERDICT WEIGHT™** is a context-adaptive, multi-source confidence synthesis framework for autonomous AI intelligence systems. It defines the mathematical methodology for transforming raw intelligence signals from multiple independent sources into calibrated, adversarially-robust confidence scores.
+**VERDICT WEIGHT** is a context-adaptive, multi-source confidence synthesis framework for autonomous AI intelligence systems. It defines the mathematical methodology for transforming raw intelligence signals from multiple independent sources into calibrated, adversarially-robust confidence scores.
 
 ## Formal Definition
 
-VERDICT WEIGHT™ is a scoring function **f: (SR, CC, TD, HA, Θ) → (SS, DI, CW)** where:
+VERDICT WEIGHT is a scoring function **f: (SR, CC, TD, HA, O) -> (SS, DI, CW)** where:
 
-- **SR** — Source Reliability score ∈ [0,1]
-- **CC** — Corroboration Count score ∈ [0,1]
-- **TD** — Temporal Decay score ∈ [0,1]
-- **HA** — Historical Accuracy score ∈ [0,1]
-- **Θ** — Context profile (domain-specific weight vector)
-- **SS** — Signal Strength output ∈ [0,1]
-- **DI** — Doubt Index output ∈ [0,1]
-- **CW** — Consequence Weight output ∈ [0,1]
+- **SR** — Source Reliability score in [0,1]
+- **CC** — Corroboration Count score in [0,1]
+- **TD** — Temporal Decay score in [0,1]
+- **HA** — Historical Accuracy score in [0,1]
+- **O** — Context profile (domain-specific weight vector)
+- **SS** — Signal Strength output in [0,1]
+- **DI** — Doubt Index output in [0,1]
+- **CW** — Consequence Weight output in [0,1]
 
 The framework specifies:
 1. How each input stream is computed from raw data
@@ -27,7 +27,7 @@ The framework specifies:
 4. How CW integrates SS and DI into an actionable score
 5. How context profiles adapt weights to operational domains
 
-## What VERDICT WEIGHT™ Is
+## What VERDICT WEIGHT Is
 
 <Check>A mathematical specification for confidence synthesis</Check>
 <Check>A context-adaptive framework with 12 validated domain profiles</Check>
@@ -35,9 +35,9 @@ The framework specifies:
 <Check>An open standard with published IP, validation data, and reference implementation</Check>
 <Check>A scoring primitive applicable to any multi-source AI decision system</Check>
 
-## What VERDICT WEIGHT™ Is Not
+## What VERDICT WEIGHT Is Not
 
-<Warning>VERDICT WEIGHT™ is not a replacement for your reasoning engine or policy layer. It operates upstream of those systems — it scores the confidence of the inputs before they reach your decision logic.</Warning>
+<Warning>VERDICT WEIGHT is not a replacement for your reasoning engine or policy layer. It operates upstream of those systems — it scores the confidence of the inputs before they reach your decision logic.</Warning>
 
 <Check>Not a firewall, guardrail, or content filter</Check>
 <Check>Not a threat detection system</Check>
@@ -46,26 +46,26 @@ The framework specifies:
 
 ## The Three-Layer Architecture
 
-VERDICT WEIGHT™ is designed to operate as a confidence layer that sits between raw intelligence ingestion and the decision engine:
+VERDICT WEIGHT is designed to operate as a confidence layer that sits between raw intelligence ingestion and the decision engine:
 
 ```
 Raw Intelligence Sources
-         ↓
-  [VERDICT WEIGHT™]
-  ├── Source Reliability scoring
-  ├── Corroboration synthesis
-  ├── Temporal decay calculation
-  ├── Historical accuracy integration
-  └── Context-adaptive weighting
-         ↓
+         |
+  [VERDICT WEIGHT]
+  |-- Source Reliability scoring
+  |-- Corroboration synthesis
+  |-- Temporal decay calculation
+  |-- Historical accuracy integration
+  |-- Context-adaptive weighting
+         |
   SS / DI / CW outputs
-         ↓
+         |
   Decision Engine / Agent / Policy Layer
 ```
 
 ## The Core Insight
 
-The key mathematical insight behind VERDICT WEIGHT™ is that **corroboration is the dominant predictive stream** for adversarial signal detection. Across 10,000 validation scenarios, corroboration count was the single strongest predictor of ground truth accuracy — more than source credibility, more than recency.
+The key mathematical insight behind VERDICT WEIGHT is that **corroboration is the dominant predictive stream** for adversarial signal detection. Across 10,000 validation scenarios, corroboration count was the single strongest predictor of ground truth accuracy — more than source credibility, more than recency.
 
 This means: an adversary can manufacture a credible source. They cannot manufacture independent corroboration at scale without triggering the Doubt Index.
 

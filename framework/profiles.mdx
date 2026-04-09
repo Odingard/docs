@@ -1,15 +1,15 @@
 ---
-title: "Context Profiles"
-description: "The 12 domain-specific weight profiles that make VERDICT WEIGHT™ context-adaptive."
+title: Context Profiles
+description: "The 12 domain-specific weight profiles that make the framework context-adaptive."
 ---
 
 # Context Profiles
 
-Different operational domains have fundamentally different signal reliability dynamics. A weight profile optimized for cybersecurity threat intelligence produces suboptimal results in healthcare diagnostics. VERDICT WEIGHT™ solves this with 12 validated context profiles.
+Different operational domains have fundamentally different signal reliability dynamics. A weight profile optimized for cybersecurity threat intelligence produces suboptimal results in healthcare diagnostics. VERDICT WEIGHT solves this with 12 validated context profiles.
 
 ## Profile Architecture
 
-Each profile specifies four weights (summing to 1.0) and a domain-specific temporal decay rate (λ):
+Each profile specifies four weights (summing to 1.0) and a domain-specific temporal decay rate:
 
 ```python
 @dataclass
@@ -35,7 +35,7 @@ Best for: SOC operations, threat feeds, vulnerability intelligence
 | CC | 0.25 | Corroboration validates threat reality |
 | TD | 0.20 | Threats evolve; recency critical |
 | HA | 0.20 | Track record confirms source value |
-| λ_td | 0.15 | Moderate decay — daily relevance |
+| lambda_td | 0.15 | Moderate decay — daily relevance |
 
 ---
 
@@ -48,7 +48,7 @@ Best for: Advanced Persistent Threat attribution, state-sponsored activity
 | CC | **0.40** |
 | TD | 0.20 |
 | HA | 0.15 |
-| λ_td | 0.10 |
+| lambda_td | 0.10 |
 
 *Corroboration is dominant. Attribution claims without multi-source agreement are unreliable.*
 
@@ -63,7 +63,7 @@ Best for: Active exploit tracking, CVE validation, zero-day confirmation
 | CC | 0.20 |
 | TD | **0.35** |
 | HA | 0.15 |
-| λ_td | 0.30 |
+| lambda_td | 0.30 |
 
 *Temporal decay is dominant. A zero-day patched last week is irrelevant today.*
 
@@ -78,7 +78,7 @@ Best for: Information operations, influence campaign detection, narrative analys
 | CC | **0.40** |
 | TD | 0.15 |
 | HA | **0.25** |
-| λ_td | 0.05 |
+| lambda_td | 0.05 |
 
 *Corroboration and historical accuracy are dominant. Disinformation relies on manufactured credibility without genuine independent agreement.*
 
@@ -93,7 +93,7 @@ Best for: AI diagnostic systems, medical imaging, clinical decision support
 | CC | 0.30 |
 | TD | 0.10 |
 | HA | 0.20 |
-| λ_td | 0.02 |
+| lambda_td | 0.02 |
 
 *Source reliability is dominant. Clinical source quality determines diagnostic validity. Very slow temporal decay — conditions persist.*
 
@@ -108,7 +108,7 @@ Best for: Adverse event detection, drug interaction signals, post-market surveil
 | CC | **0.35** |
 | TD | 0.15 |
 | HA | 0.15 |
-| λ_td | 0.05 |
+| lambda_td | 0.05 |
 
 ---
 
@@ -121,7 +121,7 @@ Best for: Transaction fraud, identity fraud, account takeover
 | CC | **0.35** |
 | TD | 0.25 |
 | HA | 0.10 |
-| λ_td | 0.20 |
+| lambda_td | 0.20 |
 
 *Fraud patterns shift weekly. Corroboration across independent signals (device, behavioral, transaction) is the key discriminator.*
 
@@ -136,7 +136,7 @@ Best for: Financial market signals, analyst forecasts, economic indicators
 | CC | 0.30 |
 | TD | **0.30** |
 | HA | 0.15 |
-| λ_td | 0.25 |
+| lambda_td | 0.25 |
 
 ---
 
@@ -149,7 +149,7 @@ Best for: OSINT/SIGINT/HUMINT/IMINT fusion, military intelligence, threat assess
 | CC | **0.35** |
 | TD | 0.20 |
 | HA | 0.15 |
-| λ_td | 0.10 |
+| lambda_td | 0.10 |
 
 *Multi-INT corroboration is the gold standard. Single-source intelligence without cross-INT validation is treated as low confidence.*
 
@@ -164,9 +164,9 @@ Best for: Camera/LiDAR/radar/GPS fusion, ADAS decision systems
 | CC | **0.40** |
 | TD | **0.25** |
 | HA | 0.10 |
-| λ_td | 2.0 |
+| lambda_td | 2.0 |
 
-*Near-real-time decay (λ=2.0 — seconds matter). Sensor corroboration is dominant for safety-critical decisions.*
+*Near-real-time decay (lambda=2.0 — seconds matter). Sensor corroboration is dominant for safety-critical decisions.*
 
 ---
 
@@ -179,7 +179,7 @@ Best for: AI-surfaced evidence, document review, evidentiary confidence
 | CC | 0.30 |
 | TD | 0.15 |
 | HA | 0.15 |
-| λ_td | 0.03 |
+| lambda_td | 0.03 |
 
 *Source reliability is dominant for Daubert admissibility. Evidence quality determines courtroom viability.*
 
@@ -194,7 +194,7 @@ Best for: Retrieval-Augmented Generation, enterprise knowledge bases, AI assista
 | CC | **0.35** |
 | TD | 0.20 |
 | HA | 0.15 |
-| λ_td | 0.08 |
+| lambda_td | 0.08 |
 
 *The largest addressable market. Every enterprise LLM retrieving from multiple knowledge sources needs this layer.*
 

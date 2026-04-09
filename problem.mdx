@@ -1,5 +1,5 @@
 ---
-title: "The Problem"
+title: The Problem
 description: "Why autonomous AI systems cannot trust their own inputs."
 ---
 
@@ -42,23 +42,23 @@ This architecture has one critical flaw: **a high-credibility spoofed signal is 
     A nation-state APT scenario and a real-time fraud detection scenario have fundamentally different signal reliability dynamics. A single static weight profile produces suboptimal results in both.
   </Accordion>
   <Accordion title="No adversarial suppression">
-    Current systems have no mechanism to detect the signature pattern of adversarial injection: high source credibility combined with zero independent corroboration. VERDICT WEIGHT™'s Doubt Index makes this pattern explicit.
+    Current systems have no mechanism to detect the signature pattern of adversarial injection: high source credibility combined with zero independent corroboration. The Doubt Index makes this pattern explicit.
   </Accordion>
 </AccordionGroup>
 
 ## The Empirical Case
 
-VERDICT WEIGHT™ was validated against 10,000 synthetic scenarios across five intelligence profiles:
+VERDICT WEIGHT was validated against 10,000 synthetic scenarios across five intelligence profiles:
 
 | Profile | Description | True Positive Rate |
 |---|---|---|
 | HIGH | All streams strong (>0.65) | 88% |
-| MEDIUM | Mixed streams (0.35–0.70) | 58% |
+| MEDIUM | Mixed streams (0.35-0.70) | 58% |
 | LOW | All streams weak (<0.45) | 18% |
 | ADVERSARIAL | High SR, near-zero CC | 35% |
 | STALE | High SR/CC, near-zero TD | 50% |
 
-The adversarial profile is the critical case. A naive system scores it HIGH — the source looks credible. VERDICT WEIGHT™ scores it **NOISE** (CW=0.136). That gap is the problem this framework solves.
+The adversarial profile is the critical case. A naive system scores it HIGH — the source looks credible. VERDICT WEIGHT scores it **NOISE** (CW=0.136). That gap is the problem this framework solves.
 
 ## The Market That Has This Problem
 
@@ -71,4 +71,4 @@ Every system making autonomous decisions from multi-source data has this problem
 - **Healthcare AI** — diagnostic signals from multiple imaging modalities
 - **Legal eDiscovery** — AI-surfaced evidence from emails, documents, metadata
 
-The problem is not domain-specific. It is architectural. VERDICT WEIGHT™ provides the architectural fix.
+The problem is not domain-specific. It is architectural. VERDICT WEIGHT provides the architectural fix.

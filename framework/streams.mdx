@@ -1,15 +1,15 @@
 ---
-title: "Evidence Streams"
-description: "The four independent dimensions VERDICT WEIGHT™ uses to evaluate every intelligence signal."
+title: Evidence Streams
+description: "The four independent dimensions used to evaluate every intelligence signal."
 ---
 
 # Evidence Streams
 
-VERDICT WEIGHT™ evaluates every intelligence signal across four independent evidence dimensions. Each stream captures a distinct aspect of signal reliability. Together, they form the input vector for confidence synthesis.
+VERDICT WEIGHT evaluates every intelligence signal across four independent evidence dimensions. Each stream captures a distinct aspect of signal reliability. Together, they form the input vector for confidence synthesis.
 
 ## Stream 1: Source Reliability (SR)
 
-**SR ∈ [0,1]** — The historical trustworthiness of the originating source.
+**SR in [0,1]** — The historical trustworthiness of the originating source.
 
 Source Reliability is not a static label. It is a computed score derived from:
 
@@ -26,7 +26,7 @@ sr_score = compute_source_reliability(
     compromise_history=False,
     authentication_verified=True
 )
-# → 0.89
+# -> 0.89
 ```
 
 **Key property:** SR alone is insufficient. A high-credibility spoofed source scores SR=0.90. Without corroboration, the Doubt Index will surface this discrepancy.
@@ -35,7 +35,7 @@ sr_score = compute_source_reliability(
 
 ## Stream 2: Corroboration Count (CC)
 
-**CC ∈ [0,1]** — Independent agreement across multiple unrelated sources.
+**CC in [0,1]** — Independent agreement across multiple unrelated sources.
 
 Corroboration Count is the most adversarially robust stream. It measures:
 
@@ -45,10 +45,11 @@ Corroboration Count is the most adversarially robust stream. It measures:
 
 ```python
 # CC scoring formula
+from math import exp
 n_independent_sources = 4
+lambda_cc = 0.5
 cc_score = 1 - exp(-lambda_cc * n_independent_sources)
-# λ_cc = 0.5 (default)
-# → 0.865
+# -> 0.865
 ```
 
 **The adversarial asymmetry:** An adversary can compromise one source. Compromising four independent sources from different institutional lineages simultaneously is operationally infeasible at speed. This is why CC is the dominant predictive stream.
@@ -61,22 +62,21 @@ Corroboration flooding — an adversary manufacturing multiple low-quality sourc
 
 ## Stream 3: Temporal Decay (TD)
 
-**TD ∈ [0,1]** — Recency and freshness of the intelligence relative to operational context.
+**TD in [0,1]** — Recency and freshness of the intelligence relative to operational context.
 
-Intelligence degrades. The rate of degradation is domain-dependent. VERDICT WEIGHT™ applies context-adaptive exponential decay:
+Intelligence degrades. The rate of degradation is domain-dependent. VERDICT WEIGHT applies context-adaptive exponential decay:
 
 ```python
-# TD scoring formula
 import math
 td_score = math.exp(-lambda_td * age_days)
 
-# Domain-specific decay rates (λ):
-# Cybersecurity APT:     λ = 0.15  (fast decay — threats evolve daily)
-# Zero-day:              λ = 0.30  (very fast — hours matter)
-# Financial fraud:       λ = 0.20  (moderate — patterns shift weekly)
-# Healthcare diagnosis:  λ = 0.02  (slow — conditions persist)
-# Defense intelligence:  λ = 0.10  (moderate decay)
-# Autonomous vehicle:    λ = 2.0   (near-real-time — seconds matter)
+# Domain-specific decay rates:
+# Cybersecurity APT:     lambda = 0.15  (fast decay)
+# Zero-day:              lambda = 0.30  (very fast)
+# Financial fraud:       lambda = 0.20  (moderate)
+# Healthcare diagnosis:  lambda = 0.02  (slow)
+# Defense intelligence:  lambda = 0.10  (moderate decay)
+# Autonomous vehicle:    lambda = 2.0   (near-real-time)
 ```
 
 **Key property:** Stale intelligence can be highly credible and well-corroborated while being operationally irrelevant. TD prevents confident but outdated signals from driving current decisions.
@@ -85,7 +85,7 @@ td_score = math.exp(-lambda_td * age_days)
 
 ## Stream 4: Historical Accuracy (HA)
 
-**HA ∈ [0,1]** — The source's track record of prior predictions in this specific domain.
+**HA in [0,1]** — The source's track record of prior predictions in this specific domain.
 
 Historical Accuracy is distinct from Source Reliability. A source may be institutionally credible (high SR) but have a poor track record in a specific domain (low HA). Both are measured independently.
 
@@ -94,7 +94,7 @@ Historical Accuracy is distinct from Source Reliability. A source may be institu
 correct_predictions = 87
 total_predictions = 100
 ha_score = correct_predictions / total_predictions
-# → 0.87
+# -> 0.87
 ```
 
 With Laplace smoothing for new sources with limited history:
@@ -118,4 +118,4 @@ The four streams are designed to be **independent**. When they agree, confidence
 | High SR/CC, low TD | Medium | Medium | Credible but stale |
 | Mixed across all | Low-Med | **High** | Contradicting signals — investigate |
 
-This interaction is what makes VERDICT WEIGHT™ adversarially robust. It is not enough to have a credible source. The signal must survive cross-stream validation.
+This interaction is what makes VERDICT WEIGHT adversarially robust. It is not enough to have a credible source. The signal must survive cross-stream validation.
