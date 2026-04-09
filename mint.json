@@ -50,43 +50,25 @@
       "pages": [
         "framework/streams",
         "framework/scoring",
-        "framework/profiles",
-        "framework/interpreter"
-      ]
-    },
-    {
-      "group": "Threat Model",
-      "pages": [
-        "threats/overview",
-        "threats/adversarial-spoofing",
-        "threats/source-collapse",
-        "threats/temporal-decay",
-        "threats/corroboration-flooding",
-        "threats/confidence-manipulation"
+        "framework/profiles"
       ]
     },
     {
       "group": "Conformance",
       "pages": [
-        "conformance/requirements",
-        "conformance/testing"
+        "conformance/requirements"
       ]
     },
     {
       "group": "SDK & Integration",
       "pages": [
-        "sdk/quickstart",
-        "sdk/python",
-        "sdk/api",
-        "sdk/examples"
+        "sdk/quickstart"
       ]
     },
     {
       "group": "Research",
       "pages": [
-        "research/aligned",
-        "research/causal",
-        "research/temporal"
+        "research/aligned"
       ]
     }
   ],
