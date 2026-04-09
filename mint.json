@@ -62,12 +62,6 @@
       ]
     }
   ],
-  "redirects": [
-    {
-      "source": "/",
-      "destination": "/introduction"
-    }
-  ],
   "footerSocials": {
     "github": "https://github.com/Odingard/verdict-weight",
     "linkedin": "https://www.linkedin.com/in/andrebyrd87"
