@@ -1,1 +1,79 @@
 
+---
+title: "Quickstart"
+description: "Integrate VERDICT WEIGHT™ in five lines of code."
+---
+
+# Quickstart
+
+## Installation
+
+```bash
+pip install verdict-weight
+```
+
+## Basic Usage
+
+```python
+from verdict_weight import VerdictWeight, ContextProfile
+
+# Initialize with a domain profile
+vw = VerdictWeight(profile=ContextProfile.CYBERSECURITY)
+
+# Score an intelligence signal
+result = vw.score(
+    SR=0.85,  # Source Reliability
+    CC=0.72,  # Corroboration Count
+    TD=0.90,  # Temporal Decay
+    HA=0.78   # Historical Accuracy
+)
+
+print(result.consequence_weight)  # 0.801
+print(result.tier)                # "CRITICAL"
+print(result.signal_strength)     # 0.823
+print(result.doubt_index)         # 0.089
+```
+
+## Detecting Adversarial Injection
+
+```python
+# Same credible source — but no corroboration
+result = vw.score(SR=0.92, CC=0.08, TD=0.88, HA=0.85)
+
+print(result.tier)          # "LOW"
+print(result.doubt_index)   # 0.731  ← HIGH
+print(result.warning)
+# "WARNING: High inter-stream disagreement (DI=0.731).
+#  High source credibility with near-zero corroboration
+#  is the primary signature of adversarial injection."
+```
+
+## Available Profiles
+
+```python
+from verdict_weight import ContextProfile
+
+ContextProfile.CYBERSECURITY
+ContextProfile.APT
+ContextProfile.ZERO_DAY
+ContextProfile.DISINFORMATION
+ContextProfile.HEALTHCARE
+ContextProfile.DRUG_SAFETY
+ContextProfile.FINANCIAL_FRAUD
+ContextProfile.MARKET_INTEL
+ContextProfile.DEFENSE
+ContextProfile.AUTONOMOUS_VEHICLE
+ContextProfile.LEGAL
+ContextProfile.ENTERPRISE_RAG
+```
+
+## GitHub
+
+Full source code, examples, and issue tracker:
+[github.com/Odingard/verdict-weight](https://github.com/Odingard/verdict-weight)
+
+## License
+
+Research and evaluation use: open under custom license.
+Commercial deployment: requires license agreement.
+Contact: [andre.byrd@odingard.com](mailto:andre.byrd@odingard.com)
