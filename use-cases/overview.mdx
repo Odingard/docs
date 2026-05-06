@@ -1,0 +1,80 @@
+---
+title: "Use cases"
+description: "Scoped scenarios where VERDICT WEIGHT's eight-stream composition produces concrete operational value."
+---
+
+## What this section is
+
+This section documents *scoped scenarios* &mdash; specific deployment contexts where the framework's value proposition resolves to concrete operational outcomes. These are not vertical demos. They are not synthetic showcases. They are scenarios that map a real deployment shape to specific streams, configuration, and audit artifacts.
+
+The distinction matters. A demo with synthetic data persuades nobody who is evaluating the framework for production. A scoped scenario, paired with the framework's published validation, is what acquisition-side reviewers actually use.
+
+When a pilot lands, the scenario most aligned with the pilot becomes the basis for a published case study with real numbers. Until then, the scenarios stand on their own as deployment templates.
+
+## The three scenarios
+
+<CardGroup cols={3}>
+  <Card title="Defense autonomy" icon="shield-halved" href="/use-cases/defense-autonomy">
+    Confidence-gated autonomous decisioning in adversarial environments.
+  </Card>
+  <Card title="AI security operations" icon="bug" href="/use-cases/ai-security-soc">
+    Vulnerability triage and threat detection where confidence determines action priority.
+  </Card>
+  <Card title="Regulated industry" icon="scale-balanced" href="/use-cases/regulated-industry">
+    Decisioning in healthcare, finance, and legal contexts where audit defensibility is mandatory.
+  </Card>
+</CardGroup>
+
+## Why these three
+
+The scenarios were selected because each one exercises the framework's eight-stream composition in a recognizable, validated shape:
+
+- **Defense autonomy** is the canonical use case for [Stream 6](/streams/06-sis-curveball-detection). Curveball-class attacks are the natural threat against confidence-gated military systems.
+- **AI security operations** is the use case the published [CVE/KEV validation](/validation/cve-dataset) directly demonstrates. The framework can be adopted by AI security teams with the existing validation as direct evidence of fit.
+- **Regulated industry** is where the audit primitive ([Stream 7](/streams/07-cps-hash-chain-integrity)) and compliance mappings ([Compliance & Positioning](/compliance/overview)) compose into a defensible deployment posture.
+
+Other use cases exist (critical infrastructure, agentic systems, autonomous vehicles, large-scale content moderation). They are documented as they mature into pilot-ready scope.
+
+## What each scenario covers
+
+Each scoped scenario follows the same structure:
+
+<Steps>
+  <Step title="The deployment shape">
+    What system is in question, what decisions it makes, what gates those decisions today, what is breaking.
+  </Step>
+  <Step title="The threat model alignment">
+    Which failure classes from the framework's taxonomy are operative in this scenario.
+  </Step>
+  <Step title="Stream-by-stream operational value">
+    Which streams matter most, why, and how their outputs translate into operator-visible decisions.
+  </Step>
+  <Step title="Audit and compliance posture">
+    Which compliance regime applies, which audit artifacts are produced, what an external review looks like.
+  </Step>
+  <Step title="Pilot scope">
+    What a pilot for this scenario looks like &mdash; phases, deliverables, success criteria.
+  </Step>
+</Steps>
+
+## What scoped scenarios do *not* claim
+
+These pages document deployment templates, not deployments. To be precise:
+
+<Warning>
+  These are not customer references. The framework has not been deployed in production by named customers as of this writing. Pages will be updated when pilots produce publishable evidence.
+</Warning>
+
+<Warning>
+  Numerical claims throughout these scenarios trace back to the framework's published validation on the CVE dataset or to documented properties of the framework itself. They are not extrapolations to specific customer deployments.
+</Warning>
+
+<Warning>
+  Scenario fit is not a guarantee. A real deployment within one of these scenarios still requires the threat-model alignment and validation work documented in [Pilot engagement](/gov/pilot-engagement).
+</Warning>
+
+## How a prospective adopter should use this section
+
+Read the scenario closest to your deployment. Identify which elements match and which do not. Use the threat-model alignment as the input to a Phase 1 pilot conversation ([Pilot engagement](/gov/pilot-engagement)).
+
+The scenarios are starting points for productive conversations with the framework's authors, not finished pitches.

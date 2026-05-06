@@ -1,0 +1,130 @@
+---
+title: "Regulated industry"
+description: "AI decisioning in healthcare, finance, and legal contexts where audit defensibility is mandatory."
+---
+
+## The deployment shape
+
+A regulated entity &mdash; a hospital system, a bank, a clearinghouse, an insurance carrier, a law firm or e-discovery vendor &mdash; uses AI to support decisions that have consequence for individuals and that regulators may review. Examples:
+
+- **Healthcare**: clinical decision support, prior-authorization triage, imaging assistance, coding assistance.
+- **Financial services**: loan adjudication, transaction monitoring, fraud scoring, KYC/AML triage.
+- **Legal**: e-discovery review, compliance review, contract analysis, regulatory filing assistance.
+- **Insurance**: claims triage, underwriting assistance, fraud detection.
+
+In each case, the AI produces a recommendation with associated confidence, and downstream actions are gated on that confidence. In each case, the entity is subject to a regulatory regime that requires the decisioning to be explainable, auditable, and defensible &mdash; both proactively to a regulator and reactively in the event of a complaint, lawsuit, or examination.
+
+## What "audit defensibility" actually requires
+
+The phrase gets used loosely. In regulated industry it has specific operational meaning. To be defensible, a decision record must be:
+
+1. **Reproducible.** A second party can replay the decision deterministically from the recorded inputs and configuration.
+2. **Tamper-evident.** The record demonstrates it has not been altered since the decision was made.
+3. **Configuration-anchored.** The record identifies which specific version of the system &mdash; model, weights, thresholds &mdash; produced the decision.
+4. **Time-anchored.** The record includes a verifiable timestamp.
+5. **Attributable.** Decisions involving operator action (override, escalation, kill switch) attribute to specific identities.
+6. **Retrievable on demand.** Lookup by primary key (an identifier the entity controls) is fast and reliable.
+
+VERDICT WEIGHT's audit chain ([Stream 7](/streams/07-cps-hash-chain-integrity)) was designed against exactly this list. Each property is a structural property of the chain, not a configuration option.
+
+## Threat-model alignment
+
+| Failure class | Regulated-industry relevance |
+|---|---|
+| F1 &ndash; miscalibrated raw confidence | **Pervasive.** Regulators increasingly expect calibrated confidence, especially in the EU. |
+| F2 &ndash; source-correlation collapse | Common. Multiple data feeds derived from the same upstream sources. |
+| F3 &ndash; aleatoric / epistemic conflation | Operative. Distinguishing "the case is genuinely ambiguous" from "the model is out of envelope" is a frequent regulator-asked question. |
+| F4 &ndash; confidence drift | Operative for LLM-augmented review. |
+| F5 &ndash; Curveball-class adversarial inputs | Rare in mainstream regulated industry; meaningful in fraud-detection contexts. |
+| F6 &ndash; tampering with historical decisions | **Critical.** Forensic, regulatory, and legal review depend on it. |
+| F7 &ndash; compromise of the scoring layer | Operative. The decisioning layer is high-value to compromise in financial or insurance fraud contexts. |
+| F8 &ndash; forced classification under contradictory evidence | **Operative.** Abstention is often the correct response &mdash; "this case requires human review" is a defensible regulatory posture. |
+
+## Stream-by-stream operational value
+
+| Stream | Regulated-industry role |
+|---|---|
+| 1 (Evidence aggregation) | Fuses heterogeneous evidence (claims data + clinical notes; transaction data + KYC profile; document metadata + content embeddings) with quality-aware weighting. |
+| 2 (Uncertainty) | Surfaces "this case is outside the model's reliable envelope" as the basis for human-review escalation. |
+| 3 (Temporal stability) | Detects unstable LLM outputs in document review, narrative analysis, or summary generation. |
+| 4 (Cross-source coherence) | Detects contradictory evidence across feeds; supports "I cannot confidently decide; this case requires additional review" outcomes. |
+| 5 (Calibration) | The headline regulatory value. Confidence values that match empirical correctness on the entity's own data, with refit procedures for distribution shift. |
+| 6 (SIS / Curveball) | Important in fraud-detection contexts; less critical for clinical decision support or document review. |
+| 7 (CPS / hash chain) | The headline audit value. Decision-level cryptographic provenance suitable for regulatory examination, civil discovery, and internal forensic review. |
+| 8 (RIS / kill switch) | Operationally cautious. Binary abort when integrity compromise is detected, with deliberate operator-driven recovery. |
+
+The asymmetry across streams is a feature, not a defect: regulated industry typically values Streams 5 and 7 most heavily, may or may not configure Stream 6 depending on the threat model, and depends on Stream 8 as a safety primitive rather than an active feature.
+
+## Audit and compliance posture
+
+Regulated-industry deployments typically operate under multiple regimes simultaneously:
+
+| Regime | Mapping |
+|---|---|
+| EU AI Act (high-risk) | [Mapping](/compliance/eu-ai-act) covering Articles 9-15 and 50. |
+| NIST AI RMF | [Mapping](/compliance/nist-ai-rmf) for U.S. federal and federally-influenced contexts. |
+| ISO/IEC 42001 | [Mapping](/compliance/iso-iec-42001) for international AIMS certification. |
+| Sector-specific | HIPAA, SR 11-7, GDPR, FCRA, ECOA, MAR, and others depending on deployment. |
+
+The audit chain produces structured records that survive review under each of these regimes without bespoke instrumentation. The same hash-chained log functions as evidence across regulatory inquiries, internal audits, and legal proceedings &mdash; this is the operational expression of the framework's "build the audit primitive once" design choice.
+
+## A note on right-to-explanation
+
+Several regulatory regimes (EU AI Act Article 13, GDPR Article 22, various U.S. state laws on automated decisioning) require that affected individuals receive meaningful information about how a decision was reached. VERDICT WEIGHT's per-stream contributions and reason strings are not a complete answer to right-to-explanation requirements &mdash; the explanation surface a regulated entity provides to consumers is typically operator-designed &mdash; but the framework provides the structured, machine-readable inputs that explanation surfaces are built on.
+
+## Pilot scope
+
+### Phase 1: Alignment and feasibility (4-6 weeks)
+
+- Map the entity's existing decision flow to the framework's evidence model.
+- Integrate with one or two representative model paths (e.g. one ML model + one LLM-augmented review path).
+- Produce baseline calibration on the entity's labeled decision data (typically 6-24 months of historical decisions).
+- Document threat-model alignment with the entity's specific regulatory posture.
+- Confirm audit-chain integration approach with the entity's information governance team.
+
+### Phase 2: Prototype and validation (8-14 weeks)
+
+- Refit Stream 5 on representative data, with documentation of the refit procedure suitable for regulatory submission.
+- Configure audit chain with field hashing for sensitive data (PHI, PII, financial account information, etc.).
+- Integrate audit chain with the entity's existing record-keeping and case-management systems.
+- Run shadow-mode deployment alongside the existing decision flow.
+- Produce regulatory-ready documentation: data flow diagrams, control mappings, audit-chain format documentation, and operator runbooks.
+
+### Phase 3: Production transition (10-18 weeks)
+
+- Promote from shadow mode to active gating with regulator-defensible thresholds.
+- Document operator runbooks specific to the regulatory regime (regulator-facing audit procedures, internal-audit procedures, legal-discovery procedures, complaint-response procedures).
+- Train compliance, legal, and operational personnel on the framework's audit surface.
+- Establish refit cadence and refit-evidence retention policy.
+- Deliver a sustainment plan that integrates with existing model-risk-management functions.
+
+### Success criteria
+
+A successful regulated-industry pilot at the end of Phase 3 looks like:
+
+1. Calibration error on representative decision data within published bounds.
+2. Audit chain integrated with the entity's record-keeping infrastructure and verified end-to-end.
+3. Regulator-facing documentation produced and reviewed by the entity's compliance and legal functions.
+4. Operator runbooks validated under tabletop exercise covering regulatory examination, civil discovery, and internal audit scenarios.
+5. Sustainment plan accepted by the entity's model risk management function.
+
+## Where regulated industry differs from defense
+
+Defense and regulated-industry pilots use the same eight-stream framework but emphasize different streams and different success criteria. The structural difference:
+
+- **Defense** prioritizes Stream 6 (Curveball detection) and Stream 8 (kill switch). The threat is adversarial.
+- **Regulated industry** prioritizes Stream 5 (calibration) and Stream 7 (audit chain). The threat is regulatory.
+
+Both use Stream 7 heavily but for different reasons: defense uses it for after-action review of mission-critical decisions; regulated industry uses it for examination defensibility and legal discovery.
+
+A framework that supports both classes of deployment with the same underlying primitives is what makes the framework's "dual-use" positioning operationally real rather than aspirational.
+
+## What this scenario does *not* claim
+
+- The framework has not been deployed in production by a named regulated-industry entity as of this writing.
+- Regulatory acceptance of the framework's audit primitives is established by deployment-specific submission and review, not by the framework's documentation.
+- Compliance mappings ([Compliance & Positioning](/compliance/overview)) describe how the framework's controls correspond to regulatory text; whether your specific deployment satisfies your specific regulator's specific interpretation is a question for your counsel.
+
+## Pathway to engagement
+
+For regulated entities evaluating the framework: [andre.byrd@odingard.com](mailto:andre.byrd@odingard.com). The Phase 1 alignment call typically begins with the entity describing the regulatory regime in scope, the existing decision flow, and the specific defensibility or calibration pain points being scoped for. The framework's compliance mappings make the technical evaluation faster than for frameworks that lack documented regulatory crosswalks.

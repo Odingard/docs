@@ -1,0 +1,118 @@
+---
+title: "NIST AI RMF 1.0"
+description: "How VERDICT WEIGHT supports the Govern, Map, Measure, and Manage functions of the NIST AI Risk Management Framework."
+---
+
+## What the NIST AI RMF is
+
+The NIST AI Risk Management Framework (AI RMF 1.0, published January 2023) is a voluntary U.S. framework structured around four core functions:
+
+| Function | Purpose |
+|---|---|
+| **Govern** | Cultivate a culture of risk management and accountability. |
+| **Map** | Establish the context in which AI risks arise. |
+| **Measure** | Analyze, assess, and track AI risks. |
+| **Manage** | Allocate risk resources and respond to identified risks. |
+
+NIST AI RMF is the de facto baseline for federal AI procurement and a common reference point for U.S. enterprise governance programs. A clean mapping to AI RMF is table stakes for serious deployment in regulated environments.
+
+## Coverage summary
+
+VERDICT WEIGHT addresses controls primarily within **Measure** and **Manage**, with supporting evidence for **Map**. Governance requirements (the **Govern** function) are organizational and largely outside the scope of any technical building block; the framework provides artifacts that support governance reporting but does not constitute governance itself.
+
+## Function: Map
+
+The Map function establishes the deployment context, intended use, and known limitations of an AI system. VERDICT WEIGHT contributes to several Map subcategories:
+
+| AI RMF subcategory | How VERDICT WEIGHT supports it |
+|---|---|
+| **MAP 1.1** &ndash; intended purposes and contexts of use | The framework's threat model ([Threat model](/gov/threat-model)) explicitly enumerates the deployment contexts the framework is built for and the failure classes it targets. |
+| **MAP 2.3** &ndash; benefits and limitations of AI system component | [Known limitations](/validation/known-limitations) is an honest enumeration of what the validation establishes and what it does not. |
+| **MAP 3.4** &ndash; AI system limitations communicated | The "what is *not* claimed" sections throughout the documentation make limitations communicable to non-technical stakeholders. |
+| **MAP 5.1** &ndash; impacts to individuals, communities | Documented per use case in [Use cases](/use-cases/overview); operator-supplied for novel deployments. |
+
+## Function: Measure
+
+The Measure function is where VERDICT WEIGHT does the most work. The framework was built to make measurement of confidence-related risks tractable.
+
+| AI RMF subcategory | How VERDICT WEIGHT supports it |
+|---|---|
+| **MEASURE 1.1** &ndash; appropriate metrics identified and tracked | Reliability error (REL), AUC, Brier score, ECE &mdash; all four headline metrics are documented and reproducible. See [Head-to-head comparison](/validation/head-to-head-comparison). |
+| **MEASURE 1.3** &ndash; AI system trustworthiness characteristics evaluated | Calibration ([Stream 5](/streams/05-calibration)), uncertainty decomposition ([Stream 2](/streams/02-uncertainty-quantification)), temporal stability ([Stream 3](/streams/03-temporal-stability)), cross-source coherence ([Stream 4](/streams/04-cross-source-coherence)) each address a distinct trustworthiness dimension. |
+| **MEASURE 2.1** &ndash; test sets, metrics, details documented | [CVE dataset](/validation/cve-dataset), [NVD/KEV methodology](/validation/nvd-kev-methodology), and the ablation table in [Ablation studies](/validation/ablation-studies) provide the documentation. |
+| **MEASURE 2.4** &ndash; deployment performance monitored | The audit chain ([Stream 7](/streams/07-cps-hash-chain-integrity)) records every scoring event, enabling continuous monitoring of calibration drift, abstention rates, and kill-switch events. |
+| **MEASURE 2.6** &ndash; AI system safety risks assessed | The [completeness proof](/architecture/completeness-proof) is a structured safety-risk assessment relative to the documented failure-class taxonomy. |
+| **MEASURE 2.7** &ndash; AI system security and resilience evaluated | [Curveball attack class](/gov/curveball-attack-class) addresses adversarial robustness; [Stream 8](/streams/08-ris-registry-kill-switch) addresses scoring-layer compromise. |
+| **MEASURE 2.8** &ndash; risks of AI system documented | [Known limitations](/validation/known-limitations) and the threat-model bounds throughout the documentation. |
+| **MEASURE 2.10** &ndash; privacy risks evaluated | Field-hashing mode in [Audit logging](/api/audit-logging) addresses sensitive-data handling in the audit record. |
+| **MEASURE 3.1** &ndash; risk responses identified and documented | The composition rule routes each risk class to a specific response: graded contribution, abstention, or veto. See [Eight-stream composition](/architecture/eight-stream-composition). |
+| **MEASURE 3.2** &ndash; risk tracking is robust to changes | Audit-chain records preserve historical decisions and their evidence under any subsequent configuration change. |
+| **MEASURE 4.2** &ndash; AI system performance assessed | The four-metric benchmark suite is reproducible end-to-end. See [Head-to-head comparison](/validation/head-to-head-comparison). |
+
+## Function: Manage
+
+The Manage function allocates resources and responds to identified risks. VERDICT WEIGHT contributes to the technical controls that enable response.
+
+| AI RMF subcategory | How VERDICT WEIGHT supports it |
+|---|---|
+| **MANAGE 1.2** &ndash; risk responses prioritized | The framework's veto-priority composition rule encodes a default risk-response prioritization (hardening signals override core scoring). Operators can override; overrides are recorded in the audit chain. |
+| **MANAGE 1.3** &ndash; high-priority AI risks responded to | The kill switch ([Stream 8](/streams/08-ris-registry-kill-switch)) is a binary, deterministic response to scoring-layer compromise &mdash; the highest-priority risk class. |
+| **MANAGE 2.2** &ndash; mechanisms for sustaining the AI system value | The framework's reproducibility primitives (canonical evidence records, versioned registry, signed audit chain) sustain value across operator changes. |
+| **MANAGE 2.3** &ndash; AI system performance monitored | Continuous via the audit chain; periodic re-validation of calibration is a documented operator responsibility. |
+| **MANAGE 2.4** &ndash; mechanisms for response, recovery, communication | Documented procedures for kill-switch lower, audit-chain recovery, and incident escalation. See [Audit logging](/api/audit-logging). |
+| **MANAGE 3.1** &ndash; AI risk responses are tracked | Every kill-switch event, every abstention, every abort is recorded with reason in the audit chain. |
+| **MANAGE 4.1** &ndash; post-deployment monitoring plans implemented | The audit chain *is* the monitoring substrate. Operators wire dashboards on top of the structured event stream. |
+| **MANAGE 4.3** &ndash; incidents and errors communicated | Audit IDs and reason strings are designed to be propagated into operator incident-management systems. |
+
+## Function: Govern
+
+VERDICT WEIGHT does not constitute governance. Governance is organizational. What the framework provides are artifacts that support governance:
+
+| AI RMF subcategory | What VERDICT WEIGHT provides |
+|---|---|
+| **GOVERN 1.1** &ndash; legal and regulatory requirements understood | Mapping documents (this section) translate framework controls into the language of major regimes. |
+| **GOVERN 1.4** &ndash; risk management processes documented | The framework's documentation, source code, audit chain format, and reproducibility pipeline are themselves governance artifacts. |
+| **GOVERN 4.1** &ndash; organizational policies enforce trustworthy AI | Configurable thresholds and registry-protected configuration enforce policy at the technical layer. |
+| **GOVERN 4.2** &ndash; AI risks documented and tracked | The audit chain provides the immutable record on which organizational risk tracking is built. |
+| **GOVERN 5.2** &ndash; risk decisions are documented | Lower-kill-switch and threshold-change events are recorded with operator identity and justification. |
+
+What the framework does *not* provide for Govern:
+- Risk management *policy* (a written statement of what the organization considers acceptable risk).
+- Roles and responsibilities (an organizational chart of who reviews what).
+- Training and awareness (workforce education programs).
+- Stakeholder engagement processes.
+
+These are operator responsibilities. The framework provides substrate; the operator provides organization.
+
+## Audit artifacts produced
+
+For each mapped subcategory, VERDICT WEIGHT produces concrete artifacts an auditor can review:
+
+| Artifact | What it evidences |
+|---|---|
+| Hash-chained audit log | Decision provenance, integrity, reproducibility. |
+| Per-stream contribution records | Multi-dimensional risk assessment per decision. |
+| Registry snapshots and hashes | Configuration governance and change tracking. |
+| Calibration map fitting reports | Calibration validity over time. |
+| Kill-switch event log | Risk response actions and justifications. |
+| Test suite results (673/673) | Engineering-level quality evidence. |
+| Reproducibility pipeline outputs | Independent verification of validation claims. |
+
+## What the operator still owns
+
+The mappings make this explicit. The operator owns:
+
+- Articulating organizational risk appetite and translating it into VERDICT WEIGHT thresholds.
+- Establishing review cadences and roles for audit-chain inspection.
+- Integrating audit events with the organization's incident response.
+- Periodic re-validation of calibration on representative deployment data.
+- Custody of audit-chain signing keys.
+- Storage durability and retention policy for the audit log.
+- Stakeholder communication and training.
+- Legal and regulatory interpretation specific to the deployment.
+
+The framework supports each of these activities; it does not replace them.
+
+## Reproducibility
+
+Every claim in this mapping resolves to a specific page in the documentation, a specific module in the source code, or a specific record format in the audit chain. The mapping is intended to be read with the codebase open. Where it is unclear how the framework satisfies a control, that is a documentation defect; please report on [GitHub](https://github.com/Odingard/verdict-weight/issues).

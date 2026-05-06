@@ -1,0 +1,102 @@
+---
+title: "vs. LLM observability"
+description: "How VERDICT WEIGHT differs from Arize, Fiddler, Arthur, WhyLabs, and the broader ML observability category."
+---
+
+## The category
+
+ML observability platforms monitor production AI systems for drift, performance degradation, and operational anomalies. The category includes Arize, Fiddler, Arthur, WhyLabs, and a number of newer LLM-specific entrants. These are mature, well-funded products with strong customer bases.
+
+The category provides genuinely valuable functionality. It is also a different functional category from VERDICT WEIGHT.
+
+## What ML observability platforms do
+
+The recognizable capabilities:
+
+- **Performance monitoring** &mdash; track model accuracy, latency, and throughput over time.
+- **Drift detection** &mdash; alert when input or prediction distributions shift from baseline.
+- **Data quality monitoring** &mdash; flag missing values, schema violations, and statistical anomalies.
+- **Model explainability** &mdash; SHAP values, LIME, attention visualizations.
+- **A/B testing infrastructure** &mdash; compare model variants in production.
+- **Bias and fairness monitoring** &mdash; track outcome disparities across protected groups.
+- **LLM-specific evaluations** &mdash; toxicity scoring, hallucination detection, semantic similarity.
+- **Dashboards and alerting** &mdash; visualization and notification on monitored signals.
+
+Most of these are deployed as a SaaS platform that ingests prediction logs and produces a dashboard.
+
+## Where the categories diverge
+
+The structural difference is *position in the pipeline*:
+
+- **Observability platforms** sit *outside* the inference path, ingesting logs and producing aggregate signals over time.
+- **VERDICT WEIGHT** sits *inside* the inference path, computing a calibrated confidence value that the inference path itself uses to gate decisions.
+
+This is not a feature difference; it is an architectural difference. An observability platform can tell you that confidence calibration drifted last week. VERDICT WEIGHT tells you whether the system should act on this specific decision *right now*, with cryptographic evidence of how it decided.
+
+## Capability comparison
+
+| Capability | Observability platform | VERDICT WEIGHT |
+|---|---|---|
+| Aggregate performance dashboards | **Yes** | No |
+| Drift detection over time | **Yes** | Per-call only (Stream 3) |
+| Data quality monitoring | **Yes** | Limited (Stream 1) |
+| SHAP / LIME explainability | **Yes** | No |
+| Bias and fairness reporting | **Yes** | Substrate only (audit-chain replay) |
+| LLM toxicity / hallucination scoring | **Yes** | No |
+| Calibrated confidence per decision | Limited | **Yes** |
+| Per-decision audit record (cryptographic) | No | **Yes** |
+| Adversarial input detection | Limited | **Yes (Stream 6)** |
+| Kill switch primitive | No | **Yes (Stream 8)** |
+| Integration into the inference path | No | **Yes** |
+
+The two columns are addressing different operational questions. An observability platform is for the team that runs the AI system over time. VERDICT WEIGHT is for the system itself, at the moment of decision.
+
+## Where they complement
+
+A defense-grade or regulated deployment plausibly runs both:
+
+1. **VERDICT WEIGHT** in the inference path produces calibrated confidence, the audit record, and the gating decision.
+2. **An observability platform** ingests the audit-chain records (or a derivative log) and produces aggregate dashboards on confidence distribution, abstention rate, kill-switch event rate, and per-stream behavior over time.
+
+The audit chain's structured, machine-readable format makes it a natural input for observability ingestion. The two layers are not in conflict; they answer different questions.
+
+## What VERDICT WEIGHT does *not* try to be
+
+To be precise about scope:
+
+- **Not a dashboard.** The framework produces structured data; it does not render it.
+- **Not a long-term-trends tracker.** Audit-chain records can be aggregated externally; aggregation is not the framework's job.
+- **Not a SaaS.** No managed-service component. No data leaves the deployment.
+- **Not a model explainability tool.** Per-stream contributions are operationally interpretable but are not SHAP / LIME.
+- **Not a fairness monitor.** Audit records support per-subgroup analysis; the analysis itself is operator-supplied.
+
+If your need is "give my data-science team a dashboard for production ML," an observability platform is the answer. The framework's value is concentrated where the inference path itself needs to be more rigorous &mdash; not where the team needs better visibility after the fact.
+
+## When to choose which
+
+<Steps>
+  <Step title="Is the question 'what is happening across this fleet of models over time?'">
+    That is observability. VERDICT WEIGHT does not do this.
+  </Step>
+  <Step title="Is the question 'should the system act on this specific decision, with what evidence, and with what audit record?'">
+    That is VERDICT WEIGHT. Observability platforms do not do this.
+  </Step>
+  <Step title="Is the question 'has the input distribution shifted this week?'">
+    Drift detection is observability. The framework's per-call stability checks (Stream 3) are not a substitute for distributional drift monitoring.
+  </Step>
+  <Step title="Is the question 'do I have a tamper-evident record of the decision?'">
+    That is the audit chain (Stream 7). Observability platforms produce logs, not cryptographically chained records.
+  </Step>
+  <Step title="Is the question 'can I disengage this system instantly if something is wrong?'">
+    That is the kill switch (Stream 8). Observability platforms produce alerts; they do not enforce.
+  </Step>
+</Steps>
+
+## A precise framing for acquisition or board-level review
+
+The cleanest framing of the relationship between the categories:
+
+- **Observability platforms** answer *operational* questions about AI systems running in production.
+- **VERDICT WEIGHT** answers *decisional* questions inside individual AI inferences.
+
+Both are needed in serious deployments. Neither replaces the other. A deployment that has only observability has no calibrated decisional layer. A deployment that has only VERDICT WEIGHT has no aggregate visibility into how the system behaves over time. The right answer for high-stakes deployments is usually both.

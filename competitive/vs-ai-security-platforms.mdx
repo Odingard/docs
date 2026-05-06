@@ -1,0 +1,101 @@
+---
+title: "vs. AI security platforms"
+description: "How VERDICT WEIGHT differs from HiddenLayer, Robust Intelligence, Lakera, Calypso, ProtectAI."
+---
+
+## The category
+
+AI security platforms target the threat surface around production AI: model vulnerabilities, runtime adversarial input, prompt injection, jailbreak attempts, output policy violations. The category is mature and well-funded, with credible products from HiddenLayer, Robust Intelligence (acquired by Cisco), Lakera, Calypso AI, and ProtectAI, among others.
+
+These are good products. They solve real problems. They are not, however, the same product as VERDICT WEIGHT.
+
+## What AI security platforms typically do
+
+The category clusters around a recognizable set of capabilities:
+
+- **Model vulnerability scanning** &mdash; static analysis of model weights and architecture for known weaknesses.
+- **Runtime input filtering** &mdash; classification of inputs as adversarial, jailbreak attempts, or policy violations.
+- **Output filtering** &mdash; PII redaction, content moderation, format enforcement on model outputs.
+- **Threat intelligence** &mdash; attack pattern databases and detection signatures.
+- **Red-teaming tools** &mdash; automated adversarial testing.
+- **Compliance dashboards** &mdash; mapping of detected events to regulatory requirements.
+
+Most of these capabilities are deployed as a runtime layer between the user and the model, often as a managed service or a deployed appliance.
+
+## What VERDICT WEIGHT does that this category does not
+
+The framework operates on a different axis:
+
+| Capability | Typical AI security platform | VERDICT WEIGHT |
+|---|---|---|
+| Calibrated confidence as primary output | No | **Yes** |
+| Per-decision audit record with cryptographic chain | Rare | **Yes** |
+| Registry-anchored kill switch with operator-controlled lower | No | **Yes** |
+| Confidence-flip (Curveball) attack class detection | Rare | **Yes** |
+| Composition rule with veto priority | No | **Yes** |
+| Eight-stream coverage of confidence-related failures | No | **Yes** |
+| Open-source, reproducible, IEEE-grade validation | Mixed | **Yes** |
+
+The framework is built to answer a question the security platforms typically don't: *given the model produced this prediction, what is its calibrated reliability and what is the cryptographic audit record of how that reliability was determined?*
+
+## What AI security platforms do that VERDICT WEIGHT does not
+
+The reverse is also worth stating honestly:
+
+| Capability | AI security platform | VERDICT WEIGHT |
+|---|---|---|
+| Model vulnerability scanning | **Yes** | No |
+| Prompt injection / jailbreak detection | **Yes** | No |
+| Content moderation and policy filtering | **Yes** | No |
+| Threat intelligence subscription feeds | **Yes** | No |
+| Managed service with SLA | **Yes** | No |
+| Red-teaming automation | **Yes** | No |
+| Pre-trained classifiers for known attack types | **Yes** | No |
+
+If your operational need is "filter prompt-injection attempts before they reach my LLM," an AI security platform is the right answer, not VERDICT WEIGHT. The framework's scope is deliberately narrower and deeper.
+
+## Where they complement each other
+
+These tools are not substitutes; they are complements. A defense-grade deployment might reasonably run:
+
+1. An AI security platform at the input boundary, filtering known-bad inputs.
+2. The upstream model stack, producing predictions.
+3. VERDICT WEIGHT scoring the predictions and producing the audit record.
+4. Downstream gating, escalation, or autonomous action.
+
+Each layer has a clear role. The security platform reduces the rate at which adversarial inputs reach the model. VERDICT WEIGHT detects what gets through and provides the calibrated confidence + audit primitive that gating depends on.
+
+## A specific differentiator: Curveball-class attacks
+
+The AI security platform category, broadly, has not yet productized confidence-flip attack detection. The literature on Curveball-class attacks ([Curveball attack class](/gov/curveball-attack-class)) is recent; the platform-side response to it is in development.
+
+VERDICT WEIGHT's [Stream 6](/streams/06-sis-curveball-detection) is the framework's specific answer to this attack class, composed natively with the confidence-scoring layer rather than wired in as an additional filter. This is the structural reason the framework is positioned for autonomous-systems deployments where confidence-gated decisions are the operational pattern.
+
+## How to choose between them
+
+Use this rough decision tree:
+
+<Steps>
+  <Step title="Is your AI deployment gated on confidence?">
+    If no &mdash; you produce predictions but never threshold them &mdash; an AI security platform may be sufficient. VERDICT WEIGHT's value is concentrated where confidence-gating is operative.
+  </Step>
+  <Step title="Do you need cryptographic audit?">
+    If your audit posture is "logs to a database," an AI security platform's compliance dashboard probably suffices. If you need tamper-evident hash-chained provenance, VERDICT WEIGHT is purpose-built for that.
+  </Step>
+  <Step title="Is the threat model adversarial-input-at-the-model or adversarial-input-against-confidence?">
+    The first is what AI security platforms are built for. The second is what VERDICT WEIGHT is built for. Real deployments often have both; you need both layers.
+  </Step>
+  <Step title="Do you require open-source and reproducible?">
+    Most platforms in this category are commercial managed services. If your environment requires open-source, air-gapped, or independently auditable code, VERDICT WEIGHT fits; many platforms do not.
+  </Step>
+</Steps>
+
+## What this comparison is *not*
+
+To be clear:
+
+- This is not a claim that AI security platforms are inferior. They solve their problem well.
+- This is not a claim that VERDICT WEIGHT replaces them. It does not.
+- This is not a claim of feature parity. The two categories address different threat surfaces.
+
+The point is precisely that they are different categories. A buyer who treats them as substitutes will choose poorly in either direction.

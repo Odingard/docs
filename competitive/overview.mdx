@@ -1,0 +1,80 @@
+---
+title: "Competitive landscape"
+description: "How VERDICT WEIGHT differs from AI security platforms, calibration libraries, and LLM observability tools."
+---
+
+## Why this section exists
+
+Anyone evaluating VERDICT WEIGHT for production deployment is also evaluating alternatives. The honest answer to "how does this differ from X?" is more useful than the marketing answer, both for the prospective adopter and for the framework's credibility. This section is the honest answer.
+
+The categories below were chosen because they are the categories prospective adopters most often confuse VERDICT WEIGHT with. The framework is *adjacent* to all three, *equivalent* to none of them.
+
+## The three categories
+
+<CardGroup cols={3}>
+  <Card title="AI security platforms" icon="shield-halved" href="/competitive/vs-ai-security-platforms">
+    HiddenLayer, Robust Intelligence, Lakera, Calypso, ProtectAI. Adversarial defense and runtime guardrails.
+  </Card>
+  <Card title="Calibration libraries" icon="gauge" href="/competitive/vs-calibration-libraries">
+    Netcal, Uncertainty Toolbox, scikit-learn calibration. Open-source calibration as a research utility.
+  </Card>
+  <Card title="LLM observability" icon="chart-line" href="/competitive/vs-llm-observability">
+    Arize, Fiddler, Arthur, WhyLabs. Production AI monitoring and ML observability.
+  </Card>
+</CardGroup>
+
+## What VERDICT WEIGHT actually is
+
+To compare meaningfully, the framework's identity needs to be stated cleanly:
+
+VERDICT WEIGHT is a **confidence-scoring framework** with **eight composed streams** that produces **calibrated confidence values** along with **cryptographically tamper-evident audit records** and a **registry-anchored kill switch**. It is positioned for **high-stakes autonomous deployments** where the confidence value itself is part of the threat surface.
+
+It is *model-agnostic* &mdash; it scores decisions produced by any upstream model stack. It is *open-source and reproducible*. It has *no external runtime dependencies*.
+
+## What it is not
+
+The framework is not:
+
+- A model security platform that scans models for vulnerabilities.
+- A runtime guardrail that filters prompts and outputs against policy.
+- A calibration utility that operators import into a notebook.
+- An observability dashboard for production AI metrics.
+- A managed service.
+
+Each of those categories has good products. None of them produces what VERDICT WEIGHT produces.
+
+## Where the categories overlap (and don't)
+
+| Capability | AI Security | Calibration | Observability | VERDICT WEIGHT |
+|---|---|---|---|---|
+| Calibrated confidence as primary output | Sometimes | Yes | No | **Yes (primary)** |
+| Adversarial-input detection | Yes | No | Sometimes | **Yes (Stream 6)** |
+| Cryptographic audit chain | Sometimes | No | No | **Yes (Stream 7)** |
+| Registry-anchored kill switch | Sometimes | No | No | **Yes (Stream 8)** |
+| Composition of all of the above | No | No | No | **Yes** |
+| Model-agnostic | Mixed | Yes | Yes | Yes |
+| Open-source and reproducible | Mixed | Yes | Mixed | Yes |
+| Managed service | Yes | No | Yes | No |
+| IEEE-grade published validation | Rare | Sometimes | Rare | Yes |
+
+The differentiator is not any single row. It is the bottom-row count: **VERDICT WEIGHT is the only entry that does all of the above as a single composed layer**, with the validation rigor to support the claim.
+
+## Why composition matters
+
+It would be technically possible to assemble similar functionality by combining a calibration library, an AI security platform, and a custom audit logger. Most prospective adopters' first instinct is to ask why they shouldn't do that. Three reasons:
+
+1. **The composition rule is not optional.** Hardening signals must have veto priority over core scoring; abstention must be a first-class output; the registry-protected configuration must include the kill-switch state. Wiring three separate vendors to produce these guarantees is feasible in principle and in practice never happens correctly.
+2. **The audit chain has to span the whole layer.** A tamper-evident record of the *core score* is not useful if the adversarial-detection signal that should have vetoed it is in a separate, untrusted log. The integrity property has to be end-to-end.
+3. **Calibration depends on the full pipeline.** The reliability map fitted on raw model outputs plus naive averaging is not the same as the reliability map fitted on the eight-stream composition. The numbers from the published [calibration curves](/validation/calibration-curves) are properties of the integrated framework.
+
+## When VERDICT WEIGHT is *not* the right tool
+
+The honest answer to "should we use VERDICT WEIGHT" is sometimes no:
+
+- **If the deployment is not gated on confidence.** A system that produces predictions but never thresholds them does not need a confidence layer.
+- **If audit and integrity are not requirements.** For internal experimentation or low-stakes deployments, the hardening streams are overhead.
+- **If a managed service is required.** VERDICT WEIGHT is published as a library, not a service.
+- **If runtime guardrails are the actual need.** Prompt injection, jailbreak resistance, and content moderation are different problems with different solutions.
+- **If the upstream model is the threat.** Backdoor detection in models is a different problem; the framework scores decisions, it does not analyze model weights.
+
+A framework that is honest about when it is not the right tool is more credible when it claims to be the right tool. The detailed comparisons in the rest of this section apply this principle category by category.

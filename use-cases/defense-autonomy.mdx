@@ -1,0 +1,101 @@
+---
+title: "Defense autonomy"
+description: "Confidence-gated autonomous decisioning in adversarial environments. Curveball-class threats. Tamper-evident audit."
+---
+
+## The deployment shape
+
+A defense AI system &mdash; ISR, target identification, threat correlation, autonomous platform decisioning &mdash; produces predictions with associated confidence values. Operational doctrine gates autonomous action on confidence: act when confident, escalate to human review when not. This is the canonical pattern for AI-enabled autonomy and it is the deployment shape every program of record currently fielding AI is converging on.
+
+The pattern works only as well as the confidence value does. If the confidence is miscalibrated, the gate is meaningless. If the confidence is manipulable by an adversary, the gate is a weapon turned against its operator.
+
+## The threat-model alignment
+
+Defense autonomy exercises the framework's full eight-stream composition because the threat surface is the broadest. From the failure-class taxonomy ([Completeness proof](/architecture/completeness-proof)):
+
+| Failure class | Defense relevance |
+|---|---|
+| F1 &ndash; miscalibrated raw confidence | Pervasive. Model-native confidence is unreliable in mission-critical contexts. |
+| F2 &ndash; source-correlation collapse | Common. Multiple sensors feeding the same model produce correlated evidence. |
+| F3 &ndash; aleatoric / epistemic conflation | Operative. The system must distinguish "noisy environment" from "out of envelope." |
+| F4 &ndash; confidence drift on equivalent inputs | Operative for LLM-augmented decisioning. |
+| F5 &ndash; Curveball-class adversarial inputs | **Critical.** The natural attack against confidence-gated autonomy. |
+| F6 &ndash; tampering with historical decisions | **Critical.** After-action review and accountability are non-negotiable. |
+| F7 &ndash; compromise of the scoring layer | **Critical.** The framework itself is part of the threat surface in adversarial environments. |
+| F8 &ndash; forced classification under contradictory evidence | Operative. Abstention is often the correct response in contested-domain decisioning. |
+
+The three "critical" rows (F5, F6, F7) are the structural reason VERDICT WEIGHT is built for defense rather than for general developer tooling. Each is addressed by a hardening stream the framework composes natively.
+
+## Stream-by-stream operational value
+
+| Stream | Operational role |
+|---|---|
+| 1 (Evidence aggregation) | Fuses heterogeneous sensor and model evidence with quality-aware weighting. |
+| 2 (Uncertainty) | Surfaces "we are operating outside the known envelope" as a first-class signal. |
+| 3 (Temporal stability) | Detects unstable confidence under semantically equivalent reformulations. Disable for hard latency budgets. |
+| 4 (Cross-source coherence) | Detects sensor or feed correlation; surfaces contradictory evidence for review. |
+| 5 (Calibration) | Ensures reported confidence matches empirical correctness on mission-representative data. Refit per deployment. |
+| 6 (SIS / Curveball) | **Differentiator.** Detects adversarial inputs designed to flip confidence without flipping prediction. |
+| 7 (CPS / hash chain) | **Differentiator.** Tamper-evident audit for after-action review and legal defensibility. |
+| 8 (RIS / kill switch) | **Differentiator.** Binary, deterministic abort on integrity compromise. |
+
+## Audit and compliance posture
+
+Defense deployments operate under multiple overlapping regimes:
+
+- **DoD AI Ethical Principles** ([mapping](/compliance/dod-ai-ethical-principles)). Traceable, Reliable, and Governable principles map directly to Streams 7, 5, and 8 respectively.
+- **NIST AI RMF** ([mapping](/compliance/nist-ai-rmf)). Used as a foundational reference even where it is not directly imposed.
+- **Service-level RAI guidance** (Air Force CDAO, Navy responsible AI directives, Army AI strategy). Specific to the program.
+- **Conformity to acquisition-specific requirements** under the program of record.
+
+The framework's audit chain produces structured records that survive each of these review regimes without bespoke instrumentation. The same hash-chained log, with the same per-stream contributions and the same registry hashes, is the evidence artifact across all reviews.
+
+## Pilot scope
+
+A defense-autonomy pilot follows the standard three-phase structure ([Pilot engagement](/gov/pilot-engagement)) with scenario-specific scope:
+
+### Phase 1: Alignment and feasibility (4-6 weeks)
+
+- Map the program of record's existing decision flow to the failure-class taxonomy.
+- Integrate the framework with the existing model stack in a non-classified environment.
+- Produce baseline calibration measurements on declassified or synthetic mission data.
+- Document threat-model alignment with the program's specific adversary model.
+
+### Phase 2: Prototype and validation (8-14 weeks)
+
+- Refit Stream 5's calibration map on mission-representative data (often classified).
+- Validate Stream 6 detection rates against a mission-relevant adversarial corpus, including attack patterns specific to the operational environment.
+- Integrate audit chain with the program's existing logging infrastructure.
+- Run shadow-mode deployment alongside the existing decision flow for measurable parallel-run evidence.
+- Produce service-level RAI review documentation.
+
+### Phase 3: Operational transition (12-20 weeks)
+
+- Promote from shadow to active gating with documented operator runbooks.
+- Establish kill-switch procedures specific to the operational environment.
+- Train on-call operators and incident-response personnel.
+- Deliver a sustainment plan that does not depend on the framework's authors.
+- Produce an after-action review template for periodic operational evaluation.
+
+### Success criteria
+
+For a defense-autonomy pilot, success at the end of Phase 3 means:
+
+1. Calibration error within published bounds on the program's actual data.
+2. Documented Stream 6 detection rates on the program's adversarial corpus.
+3. Audit-chain integration verified end-to-end with the program's logging.
+4. Service-level RAI review passed.
+5. Operator runbook validated under tabletop exercise.
+6. Sustainment plan reviewed and accepted.
+
+## Acquisition pathway
+
+The active pathway is **AFWERX Commercial Solutions Opening (CSO)**. See [AFWERX CSO](/gov/afwerx-cso) for details on the contracting vehicle and the framework's mapping to typical CSO problem statements. The framework's IP posture (USPTO patent + trademark + open-source distribution) is structured for clean acquisition-side review.
+
+## What this scenario does *not* claim
+
+- The framework has not been deployed in production by a named program of record as of this writing.
+- Detection rates and calibration error from the published validation transfer to mission data only after deployment-specific refit and validation.
+- Curveball-class attack detection raises adversary cost; it does not provide provable security against an adaptive white-box adversary (see [Curveball attack class](/gov/curveball-attack-class)).
+
+These caveats are the same caveats stated throughout the framework's documentation. Their consistency is part of the credibility argument: the framework does not reshape its claims when the audience changes.

@@ -1,0 +1,119 @@
+---
+title: "DoD AI Ethical Principles"
+description: "How VERDICT WEIGHT supports the Department of Defense's five AI Ethical Principles."
+---
+
+## What the principles are
+
+In February 2020, the U.S. Department of Defense formally adopted five AI Ethical Principles applicable to all DoD use of AI in both combat and non-combat applications:
+
+| Principle | Plain-language summary |
+|---|---|
+| **Responsible** | DoD personnel will exercise appropriate levels of judgment and care while being responsible for AI capabilities. |
+| **Equitable** | Deliberate steps will be taken to minimize unintended bias in AI capabilities. |
+| **Traceable** | AI capabilities will be developed and deployed such that personnel possess an appropriate understanding of the technology, development processes, and operational methods. |
+| **Reliable** | AI capabilities will have explicit, well-defined uses, and the safety, security, and effectiveness of such capabilities will be subject to testing and assurance within those defined uses. |
+| **Governable** | AI capabilities will be designed and engineered to fulfill their intended functions while possessing the ability to detect and avoid unintended consequences, and the ability to disengage or deactivate deployed systems that demonstrate unintended behavior. |
+
+These principles are operationalized through the DoD Responsible AI Strategy and Implementation Pathway and through specific service-level guidance (Air Force, Navy, Army CDAO directives).
+
+## Coverage summary
+
+VERDICT WEIGHT addresses **Traceable**, **Reliable**, and **Governable** with strong technical artifacts. **Responsible** is supported through interpretability and audit primitives that enable judgment. **Equitable** is supported through per-source coherence analysis and cross-group reproducibility, with the standard caveat that bias mitigation is fundamentally a deployment-data and use-case concern that no scoring layer can fully address.
+
+## Principle: Responsible
+
+The Responsible principle requires personnel exercising appropriate judgment. VERDICT WEIGHT supports judgment by making the basis of each decision inspectable.
+
+| Required capability | How VERDICT WEIGHT supports it |
+|---|---|
+| Personnel can review AI decision rationale | Per-stream contributions and reason strings make rationale accessible without specialist tooling. |
+| Personnel can identify when AI is operating outside its envelope | Stream 2 epistemic uncertainty and Stream 4 cross-source coherence flag out-of-distribution conditions. |
+| Personnel can defer or override AI decisions | Calibrated confidence + abstention + abort outcomes provide explicit defer/override signals. Override events are recorded. |
+| Accountability chain is preserved | Operator identity recorded for kill-switch and configuration events. Audit chain attributes every decision to a configuration version. |
+
+## Principle: Equitable
+
+The Equitable principle requires deliberate steps to minimize unintended bias. The framework supports this with technical primitives but does not substitute for the substantive bias-mitigation work, which must happen at the data and use-case layer.
+
+| Required capability | How VERDICT WEIGHT supports it |
+|---|---|
+| Bias detection across subgroups | Audit-chain replay supports per-subgroup analysis of confidence distributions, abstention rates, and outcome distributions. |
+| Differential reliability assessment | Calibration can be measured per subgroup; reliability error gaps surface differential reliability. |
+| Source-correlation diagnosis | Stream 4's coherence scoring detects when sources move in lockstep, which is a known mechanism for bias amplification. |
+| Documentation of bias evaluation | Validation reproducibility supports independent bias evaluation. |
+
+<Note>
+  No scoring layer can guarantee an unbiased AI system. Bias originates in data, model, and use-case framing. VERDICT WEIGHT provides the substrate to *measure* bias and *track* it; mitigation remains a deployment activity.
+</Note>
+
+## Principle: Traceable
+
+This is where VERDICT WEIGHT does the most work. The Traceable principle is essentially a requirement for the kind of transparent, reviewable, well-documented system the framework is built to support.
+
+| Required capability | How VERDICT WEIGHT supports it |
+|---|---|
+| Personnel understand the technology | Documentation site, papers, and reproducibility pipeline support understanding at multiple depths. |
+| Personnel understand the development process | Public source, public test suite (673 tests across 27 suites), public validation. |
+| Personnel understand operational methods | Per-stream documentation, operational runbooks for kill switch and audit chain. |
+| Decision provenance is traceable | Cryptographic audit chain ([Stream 7](/streams/07-cps-hash-chain-integrity)) provides record-level provenance for every decision. |
+| Configuration provenance is traceable | Registry hash recorded with each event; configuration changes recorded as discrete events. |
+| Build provenance is traceable | Three-source integrity check (PyPI / GitHub / Zenodo) provides build provenance. See [Verification](/install/verification). |
+
+The traceability story is structurally the strongest element of the framework's DoD positioning. A signed, hash-chained audit log that survives independent verification is the artifact that makes DoD's traceable principle operational rather than aspirational.
+
+## Principle: Reliable
+
+The Reliable principle requires explicit, well-defined uses and testing/assurance within those uses. VERDICT WEIGHT supports this through its threat model boundaries and its testing rigor.
+
+| Required capability | How VERDICT WEIGHT supports it |
+|---|---|
+| Explicit, well-defined uses | [Threat model](/gov/threat-model) and the failure-class taxonomy enumerate the scope explicitly. |
+| Safety testing | 673-test suite across 27 suites including fuzz, mutation, formal verification. See [Coverage overview](/testing/coverage-overview). |
+| Security testing | Adversarial-input testing for [Stream 6](/streams/06-sis-curveball-detection); audit-chain integrity testing; registry hash protection testing. |
+| Effectiveness testing | Head-to-head benchmarks, ablation studies, calibration curves &mdash; all reproducible. |
+| Assurance evidence | IEEE-grade hardening procedure addresses all seven standard reviewer attack categories. See [Paper 2](/papers/paper-2-empirical). |
+| Out-of-envelope detection | Stream 2 (epistemic) and Stream 4 (coherence) flag operating conditions outside the validated envelope. |
+
+The Reliable principle's "well-defined uses" requirement is satisfied by stating not just what the framework does but explicitly what it does *not* claim. The [Known limitations](/validation/known-limitations) page is the canonical reference.
+
+## Principle: Governable
+
+This is where the framework is structurally distinguished from general-purpose AI tooling. The Governable principle requires the ability to detect unintended behavior and to disengage. VERDICT WEIGHT is built around exactly these primitives.
+
+| Required capability | How VERDICT WEIGHT supports it |
+|---|---|
+| Detect unintended behavior | Calibration drift, abstention rate increase, kill-switch trigger rate, and Stream 6 detection rate are all monitorable signals of unintended operation. |
+| Detect adversarial behavior | Stream 6 detects Curveball-class attacks; Stream 7 detects audit-chain tampering; registry hashing detects configuration manipulation. |
+| Disengage on demand | Operator-issued kill switch ([Stream 8](/streams/08-ris-registry-kill-switch)) is a binary, deterministic, and immediate disengagement primitive. |
+| Disengage on automatic detection | The same kill switch triggers automatically on integrity violations, adversarial detections above threshold, and self-check failures. |
+| Re-engagement is deliberate | Lowering the kill switch is a documented, audit-recorded operator action. There is no automated recovery path. |
+| Disengagement is auditable | Every kill-switch event records the trigger, the operator, and the justification. |
+
+## Audit artifacts produced
+
+For DoD review processes (Defense Innovation Unit / Joint AI Center / service-level RAI offices), the framework produces:
+
+| Artifact | What it evidences |
+|---|---|
+| Hash-chained audit log | Traceable principle &ndash; decision-level provenance. |
+| Test suite results | Reliable principle &ndash; engineering-grade testing. |
+| Validation reproducibility | Reliable principle &ndash; independent verification. |
+| Threat model and failure taxonomy | Reliable principle &ndash; well-defined use envelope. |
+| Kill-switch event log | Governable principle &ndash; disengagement evidence. |
+| Per-stream interpretability data | Responsible / Traceable principles. |
+| Calibration metrics over time | Reliable / Governable &ndash; sustained reliability. |
+
+## What the operator still owns
+
+The framework's support for the principles does not extend to:
+
+- **Mission-specific use case framing** &mdash; the operator defines what this AI capability is for and what success means.
+- **Personnel training** &mdash; the operator is responsible for ensuring personnel can in fact exercise judgment.
+- **Bias evaluation in mission context** &mdash; the framework provides primitives; mission-relevant bias review is the operator's.
+- **RAI governance and review** &mdash; service-level RAI offices conduct review; the framework provides artifacts to support it.
+- **Continuity-of-operations planning** &mdash; what happens when the kill switch fires in a contested environment is a mission-planning concern.
+
+## Path to operationalization
+
+A defense pilot following the [pilot engagement](/gov/pilot-engagement) process produces, by the end of Phase 3, a deployment that can be evaluated against the five principles with concrete artifacts in hand. This is the operational expression of the framework's DoD positioning: not a marketing claim, but a path that ends with evidence.

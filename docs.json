@@ -125,6 +125,39 @@
         ]
       },
       {
+        "tab": "Compliance & Positioning",
+        "groups": [
+          {
+            "group": "Regulatory Mappings",
+            "pages": [
+              "compliance/overview",
+              "compliance/nist-ai-rmf",
+              "compliance/eu-ai-act",
+              "compliance/dod-ai-ethical-principles",
+              "compliance/iso-iec-42001"
+            ]
+          },
+          {
+            "group": "Competitive Landscape",
+            "pages": [
+              "competitive/overview",
+              "competitive/vs-ai-security-platforms",
+              "competitive/vs-calibration-libraries",
+              "competitive/vs-llm-observability"
+            ]
+          },
+          {
+            "group": "Use Cases",
+            "pages": [
+              "use-cases/overview",
+              "use-cases/defense-autonomy",
+              "use-cases/ai-security-soc",
+              "use-cases/regulated-industry"
+            ]
+          }
+        ]
+      },
+      {
         "tab": "Government & Defense",
         "groups": [
           {

@@ -1,0 +1,151 @@
+---
+title: "EU AI Act"
+description: "How VERDICT WEIGHT supports compliance with the EU AI Act's high-risk system requirements (Articles 9-15) and transparency obligations."
+---
+
+## What the EU AI Act is
+
+The EU AI Act (Regulation (EU) 2024/1689) entered into force in 2024 with a phased implementation timeline through 2026. The Act takes a risk-based approach, classifying AI systems into four risk tiers:
+
+| Tier | Treatment |
+|---|---|
+| Unacceptable risk | Prohibited (social scoring, real-time biometric ID with limited exceptions, etc.). |
+| **High risk** | Heavily regulated. Articles 9-15 establish obligations. |
+| Limited risk | Transparency obligations under Article 50. |
+| Minimal risk | Largely unregulated. |
+
+Most consequential AI deployments &mdash; including those VERDICT WEIGHT is built for &mdash; fall into the high-risk tier. The Act's high-risk obligations are the operative compliance challenge.
+
+## Coverage summary
+
+VERDICT WEIGHT addresses the technical controls underlying Articles 9 (risk management), 10 (data governance), 12 (record-keeping), 13 (transparency), 14 (human oversight), and 15 (accuracy, robustness, cybersecurity). It does not address Article 11 (technical documentation, which is operator-produced) or the conformity-assessment procedures, which are organizational.
+
+## Article 9: Risk management system
+
+Article 9 requires a continuous, iterative risk management system covering the AI system's lifecycle.
+
+| Article 9 requirement | How VERDICT WEIGHT supports it |
+|---|---|
+| 9(2)(a) &ndash; identification and analysis of risks | The failure-class taxonomy F1-F8 ([Completeness proof](/architecture/completeness-proof)) is a structured risk identification framework specific to confidence-based AI decisioning. |
+| 9(2)(b) &ndash; estimation and evaluation of risks | Reliability error, ablation studies, and adversarial detection rates provide quantitative risk evaluation. |
+| 9(2)(c) &ndash; evaluation of other risks based on data | Out-of-distribution detection via [Stream 2](/streams/02-uncertainty-quantification) and [Stream 4](/streams/04-cross-source-coherence) provides ongoing risk evaluation under post-market data. |
+| 9(2)(d) &ndash; risk management measures | The composition rule's veto / abstention / aggregation routing is the framework's risk-response logic. |
+| 9(7) &ndash; testing throughout development | The 673-test suite ([Coverage overview](/testing/coverage-overview)) and the IEEE-grade hardening procedure constitute evidence of systematic testing. |
+| 9(9) &ndash; specific consideration for vulnerable groups | Operator-supplied per use case; the framework provides per-stream interpretability that supports group-specific impact analysis. |
+
+## Article 10: Data and data governance
+
+Article 10 governs training, validation, and testing data.
+
+| Article 10 requirement | How VERDICT WEIGHT supports it |
+|---|---|
+| 10(2)(a) &ndash; relevant design choices for data | [NVD/KEV methodology](/validation/nvd-kev-methodology) documents the dataset construction rules used in validation. |
+| 10(2)(b) &ndash; data collection processes documented | Validation datasets are constructed from public, citable sources with documented filtering. |
+| 10(2)(g) &ndash; identification of relevant data gaps | [Known limitations](/validation/known-limitations) is an explicit enumeration of data gaps in the published validation. |
+| 10(3) &ndash; relevant, representative, free of errors | Class balance, snapshot strategy, and exclusion rules are documented and reproducible. |
+
+<Note>
+  VERDICT WEIGHT is a scoring layer, not a model. The operator's compliance with Article 10 depends primarily on the data used to train and validate the *upstream model stack*. The framework's calibration refit on deployment-representative data is one input to that compliance, not a substitute for it.
+</Note>
+
+## Article 12: Record-keeping
+
+Article 12 requires automatic recording of events ("logs") sufficient to support traceability.
+
+| Article 12 requirement | How VERDICT WEIGHT supports it |
+|---|---|
+| 12(1) &ndash; automatic logging of events | The cryptographic audit chain ([Stream 7](/streams/07-cps-hash-chain-integrity)) records every scoring event automatically. |
+| 12(2)(a) &ndash; period of use | Timestamps on every record establish operational lifecycle data. |
+| 12(2)(b) &ndash; reference database against which input checked | Registry hash and configuration version recorded with each event. |
+| 12(2)(c) &ndash; input data resulting in match | Canonicalized evidence payload preserved per scoring call. |
+| 12(2)(d) &ndash; identification of natural persons involved in verification | Operator identity is recorded for kill-switch and configuration events. |
+
+VERDICT WEIGHT's audit chain is purpose-built to satisfy Article 12 and exceeds its requirements in two respects: cryptographic integrity (Article 12 does not specify integrity, but tamper-evident logging is operationally far stronger than appendable logging) and full reproducibility (the chain enables deterministic replay, not just retrospective inspection).
+
+## Article 13: Transparency and provision of information
+
+Article 13 requires high-risk systems to be transparent enough that deployers can interpret and use the output appropriately.
+
+| Article 13 requirement | How VERDICT WEIGHT supports it |
+|---|---|
+| 13(1) &ndash; designed for transparency | Per-stream contributions are exposed in `stream_breakdown`; abstention and abort outcomes are accompanied by explicit reason strings. |
+| 13(3)(a) &ndash; identity and contact details of provider | Documentation makes provider identity unambiguous. |
+| 13(3)(b)(i) &ndash; characteristics, capabilities, limitations | This documentation site is the primary artifact. |
+| 13(3)(b)(ii) &ndash; level of accuracy, robustness, cybersecurity | Reported in [Validation & Research](/validation/head-to-head-comparison) with reproducibility instructions. |
+| 13(3)(b)(iii) &ndash; circumstances which may lead to risks | Threat model and known limitations enumerated explicitly. |
+| 13(3)(b)(iv) &ndash; performance regarding specific persons or groups | Operator-supplied per deployment; framework supports per-group analysis through audit-chain replay. |
+| 13(3)(b)(v) &ndash; specifications of input data | Evidence-payload schema documented in [Scorer](/api/scorer) and [Pipeline](/api/pipeline). |
+| 13(3)(b)(vi) &ndash; information enabling output interpretation | `confidence`, `should_act`, `outcome`, and `stream_breakdown` are designed precisely for this. |
+| 13(3)(d) &ndash; human oversight measures | Configurable thresholds, abstention rules, and escalation routing all support oversight. |
+
+## Article 14: Human oversight
+
+Article 14 requires high-risk systems to be designed for effective human oversight.
+
+| Article 14 requirement | How VERDICT WEIGHT supports it |
+|---|---|
+| 14(2) &ndash; appropriate oversight measures | Calibrated confidence makes thresholding meaningful; abstention surfaces ambiguity for review. |
+| 14(4)(a) &ndash; understand capabilities and limitations | Documentation, per-stream interpretability, and known-limitations enumeration support understanding. |
+| 14(4)(b) &ndash; remain aware of automation bias | Calibrated confidence with documented reliability error counters automation bias by giving operators ground-truth-aligned uncertainty. |
+| 14(4)(c) &ndash; correctly interpret the output | Per-stream breakdown plus reason strings support correct interpretation. |
+| 14(4)(d) &ndash; decide not to use or to override | Override of `should_act` is the explicit responsibility of the calling system; the framework records overrides in the audit chain. |
+| 14(4)(e) &ndash; intervene or interrupt | The kill switch ([Stream 8](/streams/08-ris-registry-kill-switch)) provides an authoritative interruption primitive. |
+
+## Article 15: Accuracy, robustness, cybersecurity
+
+Article 15 requires high-risk systems to achieve appropriate levels of accuracy, robustness, and cybersecurity.
+
+| Article 15 requirement | How VERDICT WEIGHT supports it |
+|---|---|
+| 15(1) &ndash; appropriate level of accuracy throughout lifecycle | Calibration ([Stream 5](/streams/05-calibration)) addresses this directly; refit procedures sustain it. |
+| 15(2) &ndash; relevant accuracy metrics declared | REL, AUC, Brier, ECE all declared with confidence intervals. See [Calibration curves](/validation/calibration-curves). |
+| 15(3) &ndash; robust against errors, faults, inconsistencies | Streams 2, 3, 4 each address a distinct robustness dimension. |
+| 15(4) &ndash; resilient to attempts at altering use, output, performance | [Curveball detection (Stream 6)](/streams/06-sis-curveball-detection) addresses adversarial input; [registry kill switch (Stream 8)](/streams/08-ris-registry-kill-switch) addresses scoring-layer compromise. |
+| 15(5) &ndash; resilient against unauthorised third parties exploiting vulnerabilities | Hash-chain integrity ([Stream 7](/streams/07-cps-hash-chain-integrity)) detects tampering; registry hashing detects configuration manipulation. |
+
+## Article 50: Transparency obligations for certain AI systems
+
+Article 50 imposes additional transparency obligations for AI systems that interact with natural persons or generate content. These are largely operator obligations rather than framework obligations, but VERDICT WEIGHT supports them by:
+
+- Producing structured, machine-readable confidence and reasoning data that downstream systems can surface to end users.
+- Providing per-stream interpretability sufficient to support human-readable explanations.
+
+## What the operator still owns
+
+The framework does not address:
+
+- **Article 11 technical documentation** &mdash; this is the operator's deployment-specific documentation, distinct from the framework's documentation.
+- **Conformity assessment** &mdash; the formal procedure under Articles 43-44 is an operator/notified-body activity.
+- **Quality management system (Article 17)** &mdash; organizational, not technical.
+- **Post-market monitoring plan (Article 72)** &mdash; the framework provides telemetry; the plan is operator-defined.
+- **Reporting of serious incidents (Article 73)** &mdash; the audit chain provides the data; the reporting workflow is operator-defined.
+- **Fundamental rights impact assessment (Article 27)** &mdash; for deployers in scope.
+
+## Pre-deployment checklist
+
+For a deployer preparing for EU AI Act conformity assessment of a system using VERDICT WEIGHT:
+
+<Steps>
+  <Step title="Identify applicability">
+    Confirm the deployment falls within the high-risk classification under Annex III or as a safety component.
+  </Step>
+  <Step title="Map technical documentation">
+    Use the per-article mappings above to identify which framework artifacts cover which Article 11 documentation requirements.
+  </Step>
+  <Step title="Refit calibration">
+    Refit Stream 5 on deployment-representative data and document the refit procedure for Article 15(1).
+  </Step>
+  <Step title="Configure audit chain">
+    Configure the audit chain with operator-controlled signing keys and durable storage for Article 12.
+  </Step>
+  <Step title="Document oversight">
+    Document the human oversight measures wired around the framework's outputs for Article 14.
+  </Step>
+  <Step title="Engage notified body">
+    For Annex III high-risk systems requiring third-party conformity assessment, engage a notified body for review.
+  </Step>
+</Steps>
+
+## Reproducibility
+
+Every claim in this mapping resolves to a specific page in the documentation, a specific module in the source code, or a specific record format in the audit chain. As with the [NIST AI RMF mapping](/compliance/nist-ai-rmf), the document is intended to be read with the codebase open.

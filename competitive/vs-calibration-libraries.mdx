@@ -1,0 +1,98 @@
+---
+title: "vs. calibration libraries"
+description: "How VERDICT WEIGHT differs from Netcal, Uncertainty Toolbox, and scikit-learn calibration utilities."
+---
+
+## The category
+
+Several open-source libraries provide calibration as a focused, well-implemented utility for machine-learning practitioners:
+
+- **Netcal** &mdash; comprehensive Python library for confidence calibration with multiple methods.
+- **Uncertainty Toolbox** &mdash; uncertainty quantification utilities with calibration metrics.
+- **scikit-learn `CalibratedClassifierCV`** &mdash; calibration as a wrapper around classifiers.
+- **TensorFlow Probability / Pyro** &mdash; broader uncertainty-quantification frameworks that include calibration.
+
+These libraries are excellent at what they do. They are research-grade, well-tested, and widely used. They are also a different category of thing from VERDICT WEIGHT.
+
+## What calibration libraries do
+
+The category is focused and well-defined:
+
+- Take a vector of model probabilities and a vector of ground-truth labels.
+- Fit a calibration map (Platt scaling, isotonic regression, temperature scaling, etc.).
+- Apply the fitted map to new model outputs.
+- Optionally provide reliability diagrams and calibration metrics.
+
+That is, essentially, the whole product. The libraries are imported into research notebooks, used in model-development pipelines, and sometimes deployed as a thin wrapper at inference time.
+
+## What VERDICT WEIGHT does that calibration libraries do not
+
+Calibration is one of the framework's eight streams ([Stream 5](/streams/05-calibration)). The other seven are not in scope for any calibration library.
+
+| Capability | Calibration library | VERDICT WEIGHT |
+|---|---|---|
+| Fit a calibration map | **Yes** | Yes (Stream 5) |
+| Apply the map to new outputs | **Yes** | Yes (Stream 5) |
+| Reliability diagrams and metrics | **Yes** | Yes (Stream 5 + validation pipeline) |
+| Evidence aggregation across heterogeneous sources | No | **Yes (Stream 1)** |
+| Aleatoric / epistemic uncertainty decomposition | Limited | **Yes (Stream 2)** |
+| Temporal stability / drift detection per call | No | **Yes (Stream 3)** |
+| Cross-source coherence checking | No | **Yes (Stream 4)** |
+| Adversarial input detection | No | **Yes (Stream 6)** |
+| Cryptographic audit chain | No | **Yes (Stream 7)** |
+| Registry kill switch | No | **Yes (Stream 8)** |
+| Composition rule with veto priority | No | **Yes** |
+
+The category difference: calibration libraries are *one* of the eight things VERDICT WEIGHT does. They are not the layer; they are an input to the layer.
+
+## What calibration libraries do that VERDICT WEIGHT does not
+
+| Capability | Calibration library | VERDICT WEIGHT |
+|---|---|---|
+| Multiple calibration methods (Platt, isotonic, temperature, beta, etc.) | **Yes** | Limited &mdash; one method, justified |
+| Multi-class calibration with detailed taxonomy | **Yes** | Limited |
+| Distributional calibration | **Yes** in Uncertainty Toolbox | No |
+| Calibration of regression outputs | **Yes** | No (decisional, not regression) |
+| Lightweight, narrow scope | **Yes** | No (eight streams composed) |
+| Direct integration into ML training loops | **Yes** | No (operates on inference outputs) |
+
+If the operational need is "I have a classifier and I want its outputs better calibrated," a calibration library is the right tool. The framework's scope is broader and is justified only when the broader scope is what the deployment requires.
+
+## When to use which
+
+The decision is straightforward:
+
+<CardGroup cols={2}>
+  <Card title="Use a calibration library when" icon="check">
+    - You are improving a single classifier's calibration as part of model development.
+    - You do not need adversarial-input detection.
+    - You do not need a cryptographic audit primitive.
+    - You do not need a kill switch.
+    - You are operating in a research or low-stakes deployment context.
+  </Card>
+  <Card title="Use VERDICT WEIGHT when" icon="circle-check">
+    - The deployment is gated on confidence in production.
+    - You need composed adversarial / audit / governance primitives, not just calibration.
+    - You need calibration plus seven other streams of failure-mode coverage.
+    - The deployment is high-stakes (defense, regulated industry, critical infrastructure).
+    - Audit and tamper-evidence are operational requirements, not nice-to-haves.
+  </Card>
+</CardGroup>
+
+## A specific point: calibration is necessary but not sufficient
+
+The most common reason to misjudge this comparison is to assume calibration alone is enough. It is not, for two reasons:
+
+1. **Calibration is in-distribution.** A reliability map fitted on validation data does not extrapolate. Out-of-distribution inputs are detected by Streams 2 and 4, not by Stream 5. A deployment with calibration but no OOD detection is calibrated *until* it isn't, and then silently miscalibrated.
+
+2. **Calibration does not detect adversarial inputs.** An adversary who can drive confidence above the action threshold without changing the prediction is a real threat in autonomous systems. A calibration library, by design, does not address this. Stream 6 does.
+
+A deployment that needs only calibration does not need VERDICT WEIGHT. A deployment that needs calibration *plus* the things calibration alone does not provide is exactly what the framework is built for.
+
+## Citation context
+
+If a reviewer or evaluator asks "how is your work different from existing calibration?", the precise answer is:
+
+> Calibration is one of eight composed streams. The framework's contribution is not a new calibration method &mdash; it is the composition of calibration with adversarial detection, integrity primitives, and an audit substrate sufficient for high-stakes deployment. The empirical headline (REL ~9.6&times; better than averaging on the validation dataset) reflects the composed pipeline, not Stream 5 alone.
+
+This is the framing used in [Paper 2](/papers/paper-2-empirical) and is the correct one for academic citation.

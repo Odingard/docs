@@ -1,0 +1,113 @@
+---
+title: "AI security operations"
+description: "Vulnerability triage and threat detection where confidence determines action priority. Direct alignment with the published CVE/KEV validation."
+---
+
+## The deployment shape
+
+A security operations team uses AI &mdash; whether traditional ML, LLMs, or hybrid systems &mdash; to triage vulnerabilities, score threats, prioritize alerts, or correlate detection signals. The action gating is confidence-based: high-confidence findings escalate to active response; medium-confidence findings queue for analyst review; low-confidence findings drop or batch into longer-cycle review.
+
+This pattern is everywhere in modern security operations. It is also quietly broken in most deployments because the confidence values driving the gating are uncalibrated, unreproducible, and untrusted by the analysts they are supposed to help.
+
+## Direct alignment with published validation
+
+This is the only scenario where the framework's published validation directly demonstrates fit. The [CVE / KEV validation dataset](/validation/cve-dataset) is *constructed from* exactly this domain:
+
+- 120 real CVEs from NIST NVD.
+- Cross-referenced with CISA KEV for ground-truth labeling.
+- Evidence vectors derived from CVSS metrics, exploit availability, vendor severity, and reference quality &mdash; the same evidence channels used in production vulnerability triage.
+
+The framework's headline result on this data &mdash; **REL ≈ 0.0019, approximately 9.6&times; better calibrated than averaging baselines** &mdash; is directly applicable to this deployment shape. An AI security team adopting VERDICT WEIGHT for triage scoring is not adopting a framework validated on adjacent data; they are adopting a framework validated on data structurally identical to what they will run.
+
+## Threat-model alignment
+
+| Failure class | Security-operations relevance |
+|---|---|
+| F1 &ndash; miscalibrated raw confidence | **Pervasive.** CVSS-based heuristics and ML triage models are systematically miscalibrated. |
+| F2 &ndash; source-correlation collapse | Common. Multiple feeds derived from the same upstream sources count as independent. |
+| F3 &ndash; aleatoric / epistemic conflation | Operative. Distinguishing "weak signal" from "novel attack" is the analyst's job &mdash; the framework should help. |
+| F4 &ndash; confidence drift | Less critical for structured CVE data; more critical for LLM-augmented analysis. |
+| F5 &ndash; Curveball-class adversarial inputs | Operative. Adversaries can poison threat intelligence to suppress confidence on real threats or inflate it on decoys. |
+| F6 &ndash; tampering with historical decisions | **Critical.** Forensic and legal review of past triage decisions requires defensible audit. |
+| F7 &ndash; compromise of the scoring layer | Operative. The triage layer is high-value to compromise. |
+| F8 &ndash; forced classification under contradictory evidence | Operative. Contradictory threat intelligence is the norm, not the exception. |
+
+## Stream-by-stream operational value
+
+| Stream | Security-operations role |
+|---|---|
+| 1 (Evidence aggregation) | Fuses CVSS, exploit availability, threat intelligence feeds, and asset context with quality-aware weighting. |
+| 2 (Uncertainty) | Surfaces "we have not seen this attack pattern before" as a first-class signal that drives analyst escalation. |
+| 3 (Temporal stability) | Detects when LLM-generated triage assessments are unstable across phrasing &mdash; a common LLM-augmented-SOC failure. |
+| 4 (Cross-source coherence) | Detects when threat feeds are echoing each other versus genuinely corroborating; surfaces contradictory feeds for analyst review. |
+| 5 (Calibration) | The headline value. Triage scores match empirical breach correlation rates after refit on the deployment's actual incident data. |
+| 6 (SIS / Curveball) | Detects adversarial perturbation of threat intelligence designed to suppress true positives or inflate false positives. |
+| 7 (CPS / hash chain) | Forensic-grade audit trail for triage decisions. Critical for incident response, post-breach review, and regulatory reporting. |
+| 8 (RIS / kill switch) | Binary abort when the triage layer's integrity is compromised &mdash; e.g. when the registry hash mismatch indicates configuration tampering. |
+
+## Audit and compliance posture
+
+AI security operations sit at the intersection of multiple compliance regimes:
+
+- **NIST AI RMF** ([mapping](/compliance/nist-ai-rmf)) for general AI risk management.
+- **ISO/IEC 42001** ([mapping](/compliance/iso-iec-42001)) for AI management system certification.
+- **SOC 2** for service organizations (largely organizational; framework artifacts support engineering-control attestation).
+- **Sector-specific regulation** (FFIEC for financial-services SOCs, HIPAA for healthcare SOCs, FedRAMP for federal SOCs).
+
+The audit chain provides the substrate. The compliance mapping is operator-specific.
+
+## Pilot scope
+
+### Phase 1: Alignment and feasibility (3-5 weeks)
+
+- Map the SOC's existing triage flow to the framework's evidence model.
+- Integrate the framework with one or two representative ML triage models or LLM-based analysis paths.
+- Produce baseline calibration measurements on the SOC's recent incident data (typically 60-180 days of labeled triage decisions).
+- Identify the specific operational pain points the framework should address (analyst alert fatigue, audit defensibility, adversarial robustness, or some combination).
+
+### Phase 2: Prototype and validation (6-10 weeks)
+
+- Refit Stream 5 on the SOC's incident data, producing deployment-specific reliability error measurements.
+- Validate Stream 6 detection against synthetic Curveball-class perturbations of the SOC's threat intelligence feeds.
+- Integrate audit chain with the SOC's existing SIEM and case management infrastructure.
+- Run shadow-mode deployment alongside the existing triage flow.
+- Produce per-analyst feedback on the framework's per-stream interpretability outputs.
+
+### Phase 3: Production transition (6-12 weeks)
+
+- Promote from shadow to active gating, with thresholds tuned to the SOC's specific cost asymmetry (false-positive cost vs. missed-true-positive cost).
+- Document operator runbooks for the kill switch, audit chain verification, and analyst escalation paths.
+- Train SOC analysts on the per-stream breakdown and what each stream's signal means operationally.
+- Establish ongoing calibration refit cadence.
+- Deliver a sustainment plan suitable for the SOC's existing on-call rotation.
+
+### Success criteria
+
+A successful AI-security pilot at the end of Phase 3 looks like:
+
+1. Calibration error on the SOC's actual triage decisions within published bounds.
+2. Documented Stream 6 detection rates on adversarial threat-intelligence test cases.
+3. Audit chain integrated with SIEM; analyst can pull the audit ID for any past triage decision and replay deterministically.
+4. Analyst feedback indicates per-stream interpretability is reducing alert fatigue (lower escalation rate without degraded recall).
+5. Sustainment plan validated &mdash; the SOC can operate the framework without the framework's authors on call.
+
+## What this scenario brings that existing SOC tooling does not
+
+The honest answer:
+
+- **AI security platforms** ([comparison](/competitive/vs-ai-security-platforms)) detect adversarial inputs at the model boundary. They do not produce calibrated triage confidence with cryptographic audit.
+- **SIEM and SOAR products** orchestrate detection and response. They consume triage scores; they do not produce defensibly-calibrated ones.
+- **LLM observability platforms** ([comparison](/competitive/vs-llm-observability)) monitor LLM outputs over time. They do not gate individual triage decisions in real time.
+- **Calibration libraries** ([comparison](/competitive/vs-calibration-libraries)) produce calibration but not the seven other streams a SOC actually needs.
+
+VERDICT WEIGHT is the layer that fits where calibrated, auditable, adversarial-aware triage confidence is required &mdash; and that does not exist in the market as a productized, validated, IP-protected framework before this one.
+
+## What this scenario does *not* claim
+
+- No SOC has yet deployed the framework in production as of this writing.
+- The CVE/KEV validation, while structurally aligned with the deployment shape, is not a substitute for refitting on the SOC's own incident data.
+- The framework does not replace human analysts. Calibrated confidence enables analysts to focus on the cases that matter; it does not eliminate the analyst function.
+
+## Pathway to engagement
+
+For SOC teams interested in evaluating the framework: [andre.byrd@odingard.com](mailto:andre.byrd@odingard.com). The Phase 1 alignment call typically begins with the SOC describing its existing triage flow and the specific pain points being scoped for. The framework's published CVE/KEV validation makes the technical evaluation faster than for scenarios where validation must be rebuilt from scratch.

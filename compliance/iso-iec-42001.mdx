@@ -1,0 +1,172 @@
+---
+title: "ISO/IEC 42001"
+description: "How VERDICT WEIGHT supports ISO/IEC 42001 AI management system requirements."
+---
+
+## What ISO/IEC 42001 is
+
+ISO/IEC 42001:2023 is the international standard for AI management systems (AIMS), published December 2023. It is structurally analogous to ISO/IEC 27001 (information security management) but specific to AI &mdash; specifying requirements for establishing, implementing, maintaining, and continually improving an AI management system within an organization.
+
+ISO/IEC 42001 is the international certification track for organizations that want a recognized, auditable management system for their AI activities. It complements rather than replaces sector-specific regulation: an organization can be ISO/IEC 42001 certified and still need to satisfy NIST AI RMF, EU AI Act, or DoD-specific requirements.
+
+## Coverage summary
+
+ISO/IEC 42001 is a *management system* standard. The vast majority of its requirements are organizational: policies, processes, leadership commitment, internal audit, continual improvement. VERDICT WEIGHT, as a technical building block, addresses a subset of the standard's controls &mdash; primarily those in **Annex A** (the reference list of AI controls) and the technical aspects of **Clause 8** (operation).
+
+The framework supports certification; it does not provide certification.
+
+## Annex A controls supported
+
+Annex A of ISO/IEC 42001 enumerates a structured list of AI controls organized into nine categories. VERDICT WEIGHT's contribution by category:
+
+### A.2: Policies related to AI
+
+The framework provides artifacts that support policy implementation but does not itself constitute policy.
+
+| Control | Framework contribution |
+|---|---|
+| A.2.2 &ndash; AI policy | Configurable thresholds and registry-protected configuration enforce policy at the technical layer. |
+| A.2.4 &ndash; review of AI policy | Audit-chain replay supports policy-effectiveness review. |
+
+### A.4: Resources for AI systems
+
+Resources include data, tooling, computing, and human resources. Framework contribution is primarily in tooling provenance.
+
+| Control | Framework contribution |
+|---|---|
+| A.4.5 &ndash; tooling resources | Three-source integrity verification (PyPI / GitHub / Zenodo) establishes tooling provenance. |
+| A.4.6 &ndash; system and computing resources | Documented complexity profile supports resource planning. |
+
+### A.5: Assessing impacts of AI systems
+
+Impact assessment is largely operator-supplied; the framework provides per-stream interpretability that supports it.
+
+| Control | Framework contribution |
+|---|---|
+| A.5.2 &ndash; AI system impact assessment | Per-stream contributions and audit-chain replay support per-decision impact analysis. |
+| A.5.4 &ndash; assessing AI system impacts on individuals | Audit-chain replay enables per-individual decision review where data permits. |
+
+### A.6: AI system life cycle
+
+This is where VERDICT WEIGHT does substantial work. Life-cycle controls map directly to framework primitives.
+
+| Control | Framework contribution |
+|---|---|
+| A.6.1.2 &ndash; objectives for AI system development | The threat model, failure taxonomy, and validation criteria are objective statements made auditable. |
+| A.6.1.3 &ndash; processes for the responsible design of AI systems | The framework's design principles ([Architecture overview](/architecture/overview)) document the responsible-design process. |
+| A.6.2.2 &ndash; AI system requirements and specification | Documented threat model and stream specifications. |
+| A.6.2.3 &ndash; documentation of AI system design | Comprehensive technical documentation site. |
+| A.6.2.4 &ndash; AI system verification and validation | 673-test suite + IEEE-grade validation procedure. |
+| A.6.2.5 &ndash; AI system deployment | Operator runbooks and pilot engagement procedure. |
+| A.6.2.6 &ndash; AI system operation and monitoring | Audit chain provides continuous operational evidence. |
+| A.6.2.7 &ndash; AI system technical documentation | This documentation site. |
+| A.6.2.8 &ndash; AI system event logging | Stream 7 cryptographic audit chain. |
+
+### A.7: Data for AI systems
+
+| Control | Framework contribution |
+|---|---|
+| A.7.2 &ndash; data for development and enhancement | Validation dataset documented and reproducible. |
+| A.7.4 &ndash; quality of data for AI systems | Stream 1 evidence aggregation and Stream 4 cross-source coherence provide data-quality signals. |
+| A.7.5 &ndash; data provenance | Audit chain records data references; field hashing supports privacy-preserving provenance. |
+
+### A.8: Information for interested parties of AI systems
+
+| Control | Framework contribution |
+|---|---|
+| A.8.2 &ndash; system documentation | Documentation site published openly. |
+| A.8.3 &ndash; external reporting | Reproducibility pipeline supports external reporting. |
+| A.8.4 &ndash; communication of incidents | Audit-chain event format suitable for incident reporting integration. |
+| A.8.5 &ndash; information for interested parties | Public papers, public source, public validation. |
+
+### A.9: Use of AI systems
+
+| Control | Framework contribution |
+|---|---|
+| A.9.2 &ndash; processes for responsible use of AI systems | Operator runbook templates in pilot deliverables. |
+| A.9.3 &ndash; objectives for responsible use of AI systems | Calibrated confidence + threshold + abstention provides the substrate for objective definition. |
+| A.9.4 &ndash; intended use | Threat model documents intended use envelope. |
+
+### A.10: Third-party and customer relationships
+
+Largely operator-managed. Framework contribution is in the IP and licensing posture.
+
+| Control | Framework contribution |
+|---|---|
+| A.10.2 &ndash; allocating responsibilities | IP posture (USPTO patent + trademark, published source) makes responsibility allocation tractable. |
+| A.10.4 &ndash; suppliers | Three-source integrity check provides supply-chain evidence. |
+
+## Clauses 4-10: Management system requirements
+
+The numbered clauses of ISO/IEC 42001 (Context, Leadership, Planning, Support, Operation, Performance evaluation, Improvement) are organizational requirements. VERDICT WEIGHT does not satisfy these directly; it supplies artifacts that support an organization's satisfaction of them.
+
+| Clause | Framework contribution |
+|---|---|
+| 4 (Context) | Threat model documents external and internal context for the framework's use. |
+| 5 (Leadership) | Operator-supplied. |
+| 6 (Planning) | Documented threat model and risk taxonomy support risk-based planning. |
+| 7 (Support) | Documentation site, published source, reproducibility pipeline support competence and awareness. |
+| 8 (Operation) | The framework *is* the operational substrate. Audit chain provides operational evidence. |
+| 9 (Performance evaluation) | Calibration metrics, audit-chain replay, and benchmark reproducibility support evaluation. |
+| 10 (Improvement) | Documented refit procedures and version control support continual improvement. |
+
+## Audit artifacts produced
+
+For an ISO/IEC 42001 internal or external audit, the framework provides:
+
+| Artifact | Maps to |
+|---|---|
+| Hash-chained audit log | A.6.2.8, A.7.5, A.8.4 |
+| Test suite results (673/673) | A.6.2.4 |
+| Validation reproducibility pipeline | A.6.2.4, A.8.3 |
+| Threat model documentation | A.5.2, A.6.2.2 |
+| Documentation site | A.6.2.3, A.6.2.7, A.8.2, A.8.5 |
+| Three-source integrity verification | A.4.5, A.10.4 |
+| Per-stream interpretability data | A.5.2, A.5.4, A.9 |
+| Kill-switch event log | A.6.2.6, A.8.4 |
+
+## What the operator still owns
+
+ISO/IEC 42001 certification is fundamentally an organizational achievement. The framework cannot supply:
+
+- **Leadership commitment** &mdash; documented top-management support for the AIMS.
+- **Roles and responsibilities** &mdash; an organizational chart of AI governance.
+- **Risk-management policy** &mdash; a written statement of AI risk appetite.
+- **Internal audit programs** &mdash; the certified internal-audit function.
+- **Management review** &mdash; the recurring management-review process.
+- **Continual improvement procedures** &mdash; the documented improvement workflow.
+- **Competence and awareness training** &mdash; workforce training programs.
+
+These are AIMS-level requirements that any technical building block presupposes rather than provides.
+
+## Path to certification
+
+Organizations pursuing ISO/IEC 42001 certification with VERDICT WEIGHT in the deployment scope should:
+
+<Steps>
+  <Step title="Scope the AIMS">
+    Define the AI systems within scope, including those that use VERDICT WEIGHT as a confidence layer.
+  </Step>
+  <Step title="Map controls">
+    Use the Annex A mapping above to identify which framework artifacts satisfy which controls. Document the mapping.
+  </Step>
+  <Step title="Establish organizational requirements">
+    Build the AIMS clauses 4-10 around the technical substrate. This is the bulk of the certification work.
+  </Step>
+  <Step title="Internal audit">
+    Conduct internal audit. Framework artifacts (audit chain, test results, validation reproducibility) are concrete evidence.
+  </Step>
+  <Step title="External certification">
+    Engage an accredited certification body. Framework documentation supports the technical-readiness portion.
+  </Step>
+</Steps>
+
+## Composability with other regimes
+
+A deployment that satisfies the relevant Annex A controls through VERDICT WEIGHT is well-positioned for:
+
+- [NIST AI RMF](/compliance/nist-ai-rmf) Map and Measure functions.
+- [EU AI Act](/compliance/eu-ai-act) Articles 12, 13, 14, 15.
+- [DoD AI Ethical Principles](/compliance/dod-ai-ethical-principles) Traceable, Reliable, Governable.
+
+The same audit-chain records, the same calibration evidence, the same test results function as evidence across multiple regimes. This is the composability point made in [Compliance overview](/compliance/overview).

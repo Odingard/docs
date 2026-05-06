@@ -1,0 +1,71 @@
+---
+title: "Compliance mappings"
+description: "How VERDICT WEIGHT's eight streams map to the major AI governance frameworks."
+---
+
+## Why these mappings exist
+
+Every serious deployment of AI eventually faces a compliance question: *which controls in framework X does this system actually satisfy, and where is the evidence?* A confidence-scoring layer that cannot answer this question concretely &mdash; control by control, with named artifacts &mdash; does not survive procurement review in any regulated environment.
+
+This section is the operational answer. Each mapping below is a control-level crosswalk between a specific governance framework and the streams, audit artifacts, and configuration surfaces that satisfy it. The mappings are not marketing claims; they are tabular evidence intended to be read by a compliance lead with the framework's source code in the other tab.
+
+## What is mapped
+
+<CardGroup cols={2}>
+  <Card title="NIST AI RMF 1.0" icon="building-columns" href="/compliance/nist-ai-rmf">
+    Govern / Map / Measure / Manage. The U.S. baseline for AI risk management.
+  </Card>
+  <Card title="EU AI Act" icon="building" href="/compliance/eu-ai-act">
+    Articles 9-15 high-risk system requirements and Article 50 transparency obligations.
+  </Card>
+  <Card title="DoD AI Ethical Principles" icon="shield-halved" href="/compliance/dod-ai-ethical-principles">
+    Responsible / Equitable / Traceable / Reliable / Governable. The DoD standard.
+  </Card>
+  <Card title="ISO/IEC 42001" icon="globe" href="/compliance/iso-iec-42001">
+    AI management system requirements. The international certification track.
+  </Card>
+</CardGroup>
+
+## What these mappings are *not*
+
+A precise mapping from technical controls to regulatory text is more useful than a vague claim of "compliant with everything." It is also more honest. A few things these documents deliberately do not do:
+
+<Warning>
+  **They do not certify VERDICT WEIGHT as compliant with any regime.** Certifications attach to deployments, not to building blocks. The framework provides the substrate; the operator's deployment seeks the certification.
+</Warning>
+
+<Warning>
+  **They do not substitute for legal review.** The mappings describe how the framework's technical controls correspond to specific provisions. Whether your specific deployment satisfies your specific regulator's specific interpretation is a question for your counsel, not for this documentation.
+</Warning>
+
+<Warning>
+  **They do not claim coverage of every requirement.** Each framework includes governance, organizational, and documentation requirements that no technical building block can satisfy. The mappings make explicit which requirements VERDICT WEIGHT addresses and which it does not.
+</Warning>
+
+## How to read a mapping
+
+Each mapping page follows the same structure:
+
+<Steps>
+  <Step title="Framework summary">
+    A short, accurate description of what the framework is and what it requires. Written so a technical reader who has not read the regulation can follow.
+  </Step>
+  <Step title="Control-by-control crosswalk">
+    A table mapping each control or article to the specific VERDICT WEIGHT components that address it. Honest about partial coverage.
+  </Step>
+  <Step title="Audit artifacts produced">
+    What concrete artifacts the framework generates that an auditor can review against the controls.
+  </Step>
+  <Step title="Operator-side gaps">
+    Requirements the framework does not address. The mappings make these explicit so the operator knows what they still own.
+  </Step>
+  <Step title="Reproducibility pointers">
+    Where in the codebase, the audit chain, or the published validation work the evidence lives.
+  </Step>
+</Steps>
+
+## The composability point
+
+A subtle but important property of the framework is that the same technical artifacts &mdash; per-stream contributions, calibrated confidence values, hash-chained audit records, registry hashes, kill-switch event records &mdash; show up across multiple compliance regimes. This is not a coincidence; it reflects the underlying reality that the regimes are converging on a small set of common requirements: traceability, calibration, integrity, governance, and human oversight.
+
+A deployment that satisfies the NIST AI RMF mappings is well-positioned for EU AI Act mappings without re-engineering. A deployment that satisfies DoD's traceable and governable principles is well-positioned for ISO/IEC 42001 audit. The framework is built to make this composability automatic rather than coincidental.
