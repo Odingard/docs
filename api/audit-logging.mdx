@@ -1,0 +1,110 @@
+---
+title: "Audit logging"
+description: "Configuring, verifying, and managing the cryptographic audit chain."
+---
+
+## What gets logged
+
+Every scoring event &mdash; including `score`, `abstain`, and `abort` outcomes &mdash; is recorded in the audit chain. The recorded payload includes:
+
+- The framework version and registry hash at scoring time.
+- The canonicalized evidence payload.
+- The per-stream contributions (confidence, weight, abstention indicator).
+- The composed and calibrated confidence values.
+- The outcome and any reason string.
+- A timestamp and the previous record's hash.
+
+The chain itself is the structure that makes these records tamper-evident; see [Stream 7](/streams/07-cps-hash-chain-integrity).
+
+## Configuring the audit log
+
+```toml
+[audit]
+log_path = "/var/log/verdict-weight/chain.log"
+signing_key_id = "ops-key-2026"
+signing_key_path = "/etc/verdict-weight/keys/signing.pem"
+checkpoint_every = 10000
+```
+
+| Setting | Purpose |
+|---|---|
+| `log_path` | Where the chain is persisted. Should be on durable, append-friendly storage. |
+| `signing_key_id` | Identifier for the operator-controlled signing key. Recorded in checkpoint records. |
+| `signing_key_path` | Path to the signing key file. Optional but strongly recommended. |
+| `checkpoint_every` | How often to cut a new chain rooted in a signed checkpoint of the prior one. |
+
+## Verifying the chain
+
+```python
+from verdict_weight import AuditChain
+
+chain = AuditChain.load("/var/log/verdict-weight/chain.log")
+
+# Verify integrity end-to-end.
+assert chain.verify(), "Chain integrity violation"
+
+# Iterate records.
+for record in chain:
+    print(record.audit_id, record.timestamp, record.outcome)
+
+# Retrieve a specific record.
+record = chain.get(audit_id)
+```
+
+`chain.verify()` returns `False` if any record's hash does not match its successor's predecessor hash, or if any signed checkpoint fails signature verification. A `False` return triggers the kill switch on the next scoring call against this chain.
+
+## Checkpoint rotation
+
+For long-running deployments, the audit chain is checkpointed periodically:
+
+1. The current chain head is signed with the operator's key.
+2. A new chain is started, with its first record containing the signed checkpoint.
+3. The previous chain is closed for further appends but remains available for verification.
+
+The result is a sequence of finite chains, each signed and anchored to its predecessor. Verification cost stays bounded; trust path stays continuous.
+
+```python
+chain.checkpoint(operator="andre.byrd@odingard.com")
+```
+
+## Storage recommendations
+
+| Deployment type | Recommended storage |
+|---|---|
+| Defense / classified | Air-gapped, write-once media; rotated to long-term archive. |
+| Regulated industry | Replicated append-only filesystem with documented retention. |
+| Internal tooling | Standard durable storage; daily backup. |
+| Research | Local filesystem; reproducibility takes priority over durability. |
+
+## Recovery procedures
+
+If the active chain becomes corrupted (storage failure, partial write, accidental modification), recovery follows a documented procedure:
+
+<Steps>
+  <Step title="Detect">
+    `chain.verify()` returns `False`. The kill switch is raised on the next scoring call.
+  </Step>
+  <Step title="Isolate">
+    Move the corrupted chain aside &mdash; do not delete &mdash; and load the most recent good checkpoint.
+  </Step>
+  <Step title="Investigate">
+    Determine whether the corruption was due to operational error or to active tampering. The two cases warrant different responses.
+  </Step>
+  <Step title="Re-anchor">
+    Start a new chain rooted in a signed checkpoint that explicitly references the corrupted chain's last known good state.
+  </Step>
+  <Step title="Lower the kill switch">
+    Per the operator API, with explicit justification recorded in the new chain.
+  </Step>
+</Steps>
+
+This procedure deliberately does not allow silently "fixing" the corrupted chain. The corruption is itself an event that the audit record must reflect.
+
+## Privacy considerations
+
+The audit chain records the canonicalized evidence payload. If that payload contains personal or sensitive data, the chain inherits the same sensitivity. Operators have two options:
+
+1. **Pre-redact** sensitive fields before passing them to the scorer.
+2. **Use the field-hashing mode**, which records salted hashes of designated fields rather than their plaintext values. This preserves audit reproducibility (a future record can be matched to its original evidence) while keeping plaintext out of the log.
+
+Field hashing is configured per-deployment based on the data classification of the upstream evidence sources.

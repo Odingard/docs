@@ -1,0 +1,80 @@
+---
+title: "Thresholds"
+description: "How to choose and validate confidence thresholds for gating, escalation, and abstention."
+---
+
+## Thresholds are policy, not engineering
+
+VERDICT WEIGHT produces a calibrated confidence value. It does not, and cannot, decide what level of confidence is sufficient to act on. That decision depends on the cost of acting wrongly versus the cost of escalating &mdash; which is a property of the deployment, not of the framework.
+
+This page documents the available thresholds, how they interact, and a defensible procedure for choosing them.
+
+## The four thresholds
+
+| Threshold | Default | Effect |
+|---|---|---|
+| `action_threshold` | 0.85 | Above this, `should_act` is `True`. |
+| `escalation_threshold` | 0.60 | Below this, the result is flagged for human review even if no abstention triggered. |
+| `abstention_coherence_min` | 0.40 | Below this Stream 4 coherence value, the framework abstains. |
+| `abstention_epistemic_max` | 0.70 | Above this Stream 2 epistemic value, the framework abstains. |
+
+## Visualizing the regions
+
+A scoring outcome falls into one of four regions, determined by the calibrated confidence and the abstention rules:
+
+| Region | Confidence band | Outcome |
+|---|---|---|
+| Act | `confidence >= action_threshold` and no abstention | `score`, `should_act = True` |
+| Review | `escalation_threshold <= confidence < action_threshold` | `score`, `should_act = False`, flagged |
+| Decline | `confidence < escalation_threshold` and no abstention | `score`, `should_act = False` |
+| Abstain | abstention rule triggered | `abstain` |
+
+A separate path exists for `abort` outcomes raised by hardening streams; those are not governed by these thresholds.
+
+## Choosing `action_threshold`
+
+The defensible procedure:
+
+<Steps>
+  <Step title="Estimate the cost of acting wrongly">
+    Quantify, in whatever currency makes sense for the deployment, the cost of an incorrect action. Use a representative adverse case, not a worst case.
+  </Step>
+  <Step title="Estimate the cost of escalating">
+    Quantify the cost of routing the decision to human review. This is rarely zero &mdash; humans are expensive, slow, and themselves miscalibrated.
+  </Step>
+  <Step title="Compute the breakeven correctness rate">
+    The breakeven correctness rate is `cost_of_escalation / (cost_of_escalation + cost_of_wrong_action)`. The action threshold should be set to a value at or above this rate, expressed as a calibrated confidence.
+  </Step>
+  <Step title="Validate on held-out data">
+    Confirm on held-out data from the deployment domain that `confidence >= action_threshold` produces an empirical correctness rate at or above the breakeven.
+  </Step>
+</Steps>
+
+## Choosing `escalation_threshold`
+
+The escalation threshold is the value below which a non-abstain `score` outcome should still be flagged for review. It serves a different purpose from the action threshold: it captures the operational reality that *not acting* is not the same as *being safe*. A confidence of 0.30 is weak evidence; a sustained pattern of low-confidence non-actions may itself be a signal that warrants attention.
+
+A reasonable default is 30&ndash;50% below the action threshold. A defensible procedure is to set it at the level where the marginal cost of human review begins to exceed the cost of taking no action at all.
+
+## Choosing abstention thresholds
+
+The two abstention thresholds (`abstention_coherence_min`, `abstention_epistemic_max`) are not policy choices in the same sense. They are detection thresholds for *contradictory* and *out-of-distribution* inputs respectively. They should be set:
+
+- **Conservatively** in deployments where downstream review is cheap.
+- **Tighter** in deployments where excessive abstention has operational cost.
+
+Empirical sensitivity of these thresholds is reported in **Paper 2** under the hyperparameter sensitivity analysis.
+
+## What you should *not* do
+
+<Warning>
+  Do not move thresholds in response to a single adverse outcome. The framework produces calibrated confidence, not perfect prediction. A correctly-thresholded deployment will still produce occasional wrong actions at predictable rates. Threshold changes should be driven by validation on aggregate data, not by individual cases.
+</Warning>
+
+<Warning>
+  Do not set `action_threshold` below `escalation_threshold`. The framework will accept the configuration but will produce a warning at startup. Inverted thresholds suggest a misconception about the gating semantics.
+</Warning>
+
+<Warning>
+  Do not disable abstention rules entirely. Abstention is a structural property of the framework; disabling it forces classification under contradictory evidence, which is a known failure mode (F8 in the [completeness proof](/architecture/completeness-proof)).
+</Warning>

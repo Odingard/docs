@@ -1,0 +1,93 @@
+---
+title: "Pipeline"
+description: "Streaming and batched scoring patterns for production deployment."
+---
+
+## When to use a pipeline
+
+Use `Pipeline` when:
+
+- You are scoring decisions in a long-running service.
+- You need streaming or batched throughput rather than one-call-at-a-time scoring.
+- You want a single point of audit-chain management across many requests.
+
+For ad-hoc or single-decision scoring, use [Scorer](/api/scorer) directly.
+
+## Basic streaming pipeline
+
+```python
+from verdict_weight import Pipeline
+
+pipeline = Pipeline.from_config("config.yaml")
+
+for request in incoming_stream:
+    result = pipeline.score(request.prediction, request.evidence)
+    handle(result)
+```
+
+## Batched pipeline
+
+```python
+results = pipeline.score_batch([
+    {"prediction": p1, "evidence": e1},
+    {"prediction": p2, "evidence": e2},
+    ...
+])
+
+for req, res in zip(requests, results):
+    handle(req, res)
+```
+
+Batched scoring is the preferred path when latency tolerance allows. It amortizes audit-chain I/O and stream-wide state operations across the batch.
+
+## Concurrency model
+
+The framework supports three concurrency modes. Choose based on your deployment:
+
+<CardGroup cols={3}>
+  <Card title="Single-threaded" icon="circle-1">
+    One scorer, one event loop. Simplest. Recommended for low-volume or audit-heavy deployments.
+  </Card>
+  <Card title="Multi-process" icon="circle-2">
+    One scorer per process, separate audit logs reconciled offline. Recommended for high-throughput deployments.
+  </Card>
+  <Card title="Async" icon="circle-3">
+    Async scorer with cooperative event loop. I/O-bound stream evaluation overlaps cleanly.
+  </Card>
+</CardGroup>
+
+## Production checklist
+
+Before promoting a pipeline to production, verify:
+
+<Steps>
+  <Step title="Audit log path is durable">
+    The configured log path lives on a durable, replicated, append-only-friendly filesystem.
+  </Step>
+  <Step title="Verification is run on startup">
+    The pipeline calls `audit_chain.verify()` on startup and refuses to run if it fails.
+  </Step>
+  <Step title="Kill-switch handling is wired">
+    Callers handle `outcome == "abort"` distinctly from normal flow. Aborts must not be silently retried.
+  </Step>
+  <Step title="Calibration map is current">
+    The calibration map has been refitted on validation data representative of the deployment domain. See [Calibration](/streams/05-calibration).
+  </Step>
+  <Step title="Self-check is logged on startup">
+    The framework's self-check report is captured at startup and shipped to the operations log.
+  </Step>
+</Steps>
+
+## Error handling
+
+The pipeline raises a small set of well-defined exception types. Catch them at the boundary appropriate to your application:
+
+| Exception | When raised |
+|---|---|
+| `EvidenceError` | The evidence payload was malformed or missing required keys. |
+| `ConfigError` | The configuration is invalid or has changed since startup hash. |
+| `ChainIntegrityError` | The audit chain failed verification. The kill switch will be raised. |
+| `FrameworkAbort` | The kill switch raised by Stream 8. **Do not catch and retry.** |
+| `AbstainOutcome` | Optional; only raised if the pipeline is configured to surface abstention as exception. |
+
+Any other exception escaping the pipeline is a bug; please report it on [GitHub](https://github.com/Odingard/verdict-weight/issues).

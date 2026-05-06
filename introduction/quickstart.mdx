@@ -1,0 +1,105 @@
+---
+title: "Quickstart"
+description: "Score your first decision with VERDICT WEIGHT in under five minutes."
+---
+
+## Install
+
+<CodeGroup>
+```bash pip
+pip install verdict-weight
+```
+
+```bash uv
+uv pip install verdict-weight
+```
+
+```bash poetry
+poetry add verdict-weight
+```
+</CodeGroup>
+
+<Note>
+  Python 3.10+ is required. No GPU required. No external services contacted at runtime.
+</Note>
+
+## Score a single decision
+
+```python
+from verdict_weight import Scorer
+
+scorer = Scorer()
+
+# Submit evidence from your model stack.
+result = scorer.score(
+    prediction="approve",
+    evidence={
+        "model_logits": [0.82, 0.18],
+        "retrieval_score": 0.91,
+        "policy_check": True,
+        "prior": 0.6,
+    },
+)
+
+print(result.confidence)        # calibrated confidence in [0, 1]
+print(result.should_act)        # boolean gate decision
+print(result.stream_breakdown)  # per-stream contributions
+print(result.audit_id)          # cryptographic chain identifier
+```
+
+## Interpreting the output
+
+The result object exposes four primary surfaces:
+
+<CardGroup cols={2}>
+  <Card title="confidence" icon="gauge-high">
+    A calibrated scalar in `[0, 1]`. Reliability is established empirically &mdash; see [calibration curves](/validation/calibration-curves).
+  </Card>
+  <Card title="should_act" icon="circle-check">
+    A boolean produced by thresholding `confidence` against the configured policy. Defaults are conservative.
+  </Card>
+  <Card title="stream_breakdown" icon="chart-column">
+    Per-stream contributions, including which streams abstained, agreed, or disagreed.
+  </Card>
+  <Card title="audit_id" icon="fingerprint">
+    The hash-chain identifier for this scoring event. Use it to retrieve the signed audit record.
+  </Card>
+</CardGroup>
+
+## Verify the audit chain
+
+```python
+from verdict_weight import AuditChain
+
+chain = AuditChain.load("verdict.log")
+
+# Verify the entire chain is intact.
+assert chain.verify(), "Chain integrity violation"
+
+# Retrieve a specific decision by audit_id.
+record = chain.get(result.audit_id)
+print(record.signed_at, record.evidence_hash)
+```
+
+If `chain.verify()` returns `False`, the registry kill switch ([Stream 8](/streams/08-ris-registry-kill-switch)) will fire on the next scoring call. This is by design.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Production patterns" icon="industry" href="/api/pipeline">
+    Integrate VERDICT WEIGHT into a streaming inference pipeline.
+  </Card>
+  <Card title="Tuning" icon="sliders" href="/api/hyperparameters">
+    Adjust per-stream weights and thresholds for your deployment.
+  </Card>
+  <Card title="Validation results" icon="microscope" href="/validation/head-to-head-comparison">
+    Review the benchmarks before deciding to trust it.
+  </Card>
+  <Card title="Defense use cases" icon="shield-halved" href="/gov/threat-model">
+    Why this framework is built for adversarial environments.
+  </Card>
+</CardGroup>
+
+<Warning>
+  The code samples on this page reflect the canonical SDK shape. If your installed version differs, defer to the API reference and the package source on [GitHub](https://github.com/Odingard/verdict-weight).
+</Warning>

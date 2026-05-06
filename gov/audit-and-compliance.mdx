@@ -1,0 +1,103 @@
+---
+title: "Audit and compliance"
+description: "Why VERDICT WEIGHT's audit chain meets the standard required for regulated and defense deployments."
+---
+
+## The compliance problem
+
+Every regulated deployment of AI eventually faces the same set of questions:
+
+- *Why did the system make this decision?*
+- *What evidence supported it?*
+- *What was the system's confidence and what did that confidence mean?*
+- *Can you reproduce this decision from the recorded inputs?*
+- *Can you prove the record has not been altered?*
+
+A confidence layer that cannot answer these questions is not compliance-ready. A confidence layer that *can* answer them &mdash; reproducibly, with cryptographic integrity, in a form an auditor can verify independently &mdash; is the difference between a deployable AI system and a research project.
+
+VERDICT WEIGHT is built to answer all five questions by construction.
+
+## What the audit chain records
+
+Every scoring event &mdash; including outcomes that abstain or abort &mdash; is recorded in the cryptographic audit chain. The recorded payload includes:
+
+| Field | Purpose |
+|---|---|
+| Framework version and registry hash | Reproduces the exact configuration in effect at scoring time. |
+| Canonicalized evidence payload | Reproduces the inputs to the scoring call. |
+| Per-stream contributions | Reproduces the intermediate signals each stream produced. |
+| Composed and calibrated confidence | Reproduces the final reported confidence. |
+| Outcome (`score`, `abstain`, `abort`) and reason | Documents what the framework decided to do and why. |
+| Timestamp | Establishes ordering for after-action review. |
+| Predecessor hash | Establishes the chain integrity property. |
+
+The record is structured, canonical, and machine-readable. An auditor can replay any past decision deterministically from the recorded fields.
+
+## What integrity means here
+
+Integrity in VERDICT WEIGHT is not a process; it is a property of the data structure. The hash chain ([Stream 7](/streams/07-cps-hash-chain-integrity)) makes any modification to any past record detectable on the next verification pass. There is no procedural step the operator can forget that would silently undermine the integrity guarantee.
+
+This matters for two compliance scenarios in particular:
+
+1. **Regulatory inspection.** An external auditor verifies the chain end-to-end. A pass is evidence that no records have been altered; a fail is evidence that the chain has been tampered with or has experienced operational corruption (which is itself a finding).
+2. **Legal discovery.** A signed, hash-chained log is more defensible in legal proceedings than a flat log file or a database row. The chain provides cryptographic evidence that the record is what it claims to be.
+
+## Mapping to common compliance frameworks
+
+The framework does not certify against any specific regulatory regime &mdash; certifications are applied to deployments, not to building blocks &mdash; but the audit primitive is designed to support the controls common to most frameworks:
+
+| Compliance requirement | How the framework supports it |
+|---|---|
+| Reproducibility of automated decisions | Canonicalized evidence record + deterministic scoring |
+| Tamper-evident logging | Hash chain (Stream 7) |
+| Operator authorization for sensitive actions | Registry kill switch + explicit lower commands (Stream 8) |
+| Evidence of model-decision review | Stream contributions recorded; per-stream review possible |
+| Right to explanation | Decomposed evidence trail surfaced in `stream_breakdown` |
+| Long-term record retention | Append-only chain with checkpoint rotation |
+
+Operators in specific regulatory environments (FedRAMP, HIPAA, GDPR Article 22, financial-services regulators) will need to map these controls into their specific frameworks. The framework provides the substrate; the mapping is a deployment activity.
+
+## After-action review
+
+The audit chain enables a class of after-action review that is not possible without it:
+
+<Steps>
+  <Step title="Pull the audit ID for the decision in question">
+    Every scoring event returns an `audit_id` to the caller. Production logs should retain this ID alongside the action that was taken.
+  </Step>
+  <Step title="Retrieve the signed record">
+    `chain.get(audit_id)` returns the canonical record in its hashed form.
+  </Step>
+  <Step title="Replay the scoring call">
+    Pass the recorded evidence and configuration to a fresh scorer. Verify that the result matches the recorded outcome.
+  </Step>
+  <Step title="Inspect the per-stream breakdown">
+    Determine which streams agreed, which disagreed, which abstained. The breakdown answers "why did the system reach this confidence" in operational terms.
+  </Step>
+  <Step title="Confirm chain integrity">
+    Verify the chain end-to-end. A passing verification establishes that no records have been altered since the decision was made.
+  </Step>
+</Steps>
+
+This procedure is the same whether the review is internal, regulatory, or part of a legal proceeding. The framework does not distinguish; the audit primitive is one primitive.
+
+## Operator responsibilities
+
+The framework provides the audit substrate; the operator provides the operational discipline. Specifically:
+
+- **Key custody.** Audit-chain signing keys are operator-controlled. The framework verifies signatures; it does not protect keys at rest.
+- **Storage durability.** The chain is only as durable as the storage it lives on. The framework writes records; the operator ensures the records survive.
+- **Retention policy.** The framework supports indefinite retention but does not enforce it. Retention is a deployment-policy choice.
+- **Privacy controls.** The framework supports field hashing for sensitive fields but does not classify data automatically. Operators decide which fields warrant hashing.
+
+These are not limitations of the framework. They are the boundary between the substrate and the deployment.
+
+## What to point an auditor at
+
+If a regulatory or internal auditor asks for evidence of the framework's audit capability, the canonical references are:
+
+- This page, summarizing the operational properties.
+- [Stream 7: hash-chain integrity](/streams/07-cps-hash-chain-integrity) for the cryptographic detail.
+- [Audit logging](/api/audit-logging) for the configuration surface and operational procedures.
+- The published source code on [GitHub](https://github.com/Odingard/verdict-weight) for the implementation.
+- The Zenodo archive (DOI: 10.5281/zenodo.19447547) for the immutable, citable snapshot of the framework as deployed.

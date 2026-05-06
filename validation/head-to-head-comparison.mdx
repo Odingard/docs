@@ -1,0 +1,83 @@
+---
+title: "Head-to-head comparison"
+description: "VERDICT WEIGHT benchmarked against Dempster-Shafer, Naive Bayes, Simple Averaging, and Max Voting."
+---
+
+## Why benchmark explicitly
+
+Most confidence scoring frameworks make their case axiomatically: "we use Bayesian updating, therefore our scores are principled." The framework's position is that *axiomatic appeal is not evidence of empirical reliability*. The right test is direct, head-to-head, on the same data, with the same evaluation metrics.
+
+This page summarizes that benchmark. The full methodology, dataset, and per-metric breakdown are in **Paper 2**.
+
+## Baselines
+
+| Baseline | Description |
+|---|---|
+| Dempster-Shafer | Classical evidence-theoretic combination rule. |
+| Naive Bayes | Source-independent posterior aggregation. |
+| Simple Averaging | Unweighted mean of source confidences. |
+| Max Voting | Majority vote across discrete source predictions. |
+
+These four are chosen because they are the standard methods cited in confidence-fusion literature and in production deployments. They are not chosen because they are weak.
+
+## Metrics
+
+The benchmark reports four metrics, each measuring a distinct property:
+
+<CardGroup cols={2}>
+  <Card title="Reliability error (REL)" icon="gauge">
+    Distance between reported confidence and empirical correctness rate. Lower is better.
+  </Card>
+  <Card title="AUC" icon="chart-line">
+    Area under the ROC curve for the gate decision. Higher is better. (See [known limitations](/validation/known-limitations) on AUC interpretation in this dataset.)
+  </Card>
+  <Card title="Brier score" icon="square-poll-vertical">
+    Mean squared error between confidence and outcome. Lower is better.
+  </Card>
+  <Card title="Expected Calibration Error (ECE)" icon="ruler">
+    Weighted gap between confidence and accuracy across reliability bins. Lower is better.
+  </Card>
+</CardGroup>
+
+## Headline result
+
+VERDICT WEIGHT outperforms each baseline on all four metrics. The full table with effect sizes, confidence intervals, and Bonferroni-corrected significance is in **Paper 2, Section 4.7**.
+
+The most consequential individual finding is on **reliability error**:
+
+- VERDICT WEIGHT REL: **~0.0019**
+- Simple Averaging REL: ~0.018
+- Improvement factor: **~9.6&times; better than averaging**
+
+This is the metric that matters most for deployment: it is the metric that determines whether a stated 0.9 confidence actually means 0.9 empirical correctness.
+
+## Why this matters more than AUC
+
+A common temptation in confidence-scoring benchmarks is to lead with AUC. The framework deliberately does not. AUC measures rank-order discrimination &mdash; the ability to distinguish correct from incorrect predictions &mdash; but it does not measure whether the *magnitudes* of confidence values are meaningful.
+
+A method can produce excellent AUC while being badly miscalibrated, in which case its confidence values are useful for *sorting* decisions but not for *gating* them. Gating requires calibration. Calibration is what REL measures.
+
+VERDICT WEIGHT leads on both metrics, but the case for the framework rests on REL.
+
+## Significance
+
+The improvements over each baseline are statistically significant under Bonferroni correction across the four metric tests, with effect sizes in the meaningful range (Cohen's d > 0.5 for the headline comparisons). The full statistical apparatus is in **Paper 2, Section 4.8**.
+
+## Reproducibility
+
+Every result on this page is reproducible from the published artifact:
+
+```bash
+git clone https://github.com/Odingard/verdict-weight.git
+cd verdict-weight
+pip install -e ".[benchmarks]"
+python -m verdict_weight.benchmarks.head_to_head
+```
+
+The expected runtime is on the order of minutes. The results should match the published numbers within floating-point tolerance.
+
+## Caveats and known limitations
+
+The benchmark uses the CVE-derived validation dataset described in [CVE dataset](/validation/cve-dataset). That dataset is a real-world proxy &mdash; the benchmark is not run on synthetic data &mdash; but it is one dataset, and any single benchmark dataset has limitations.
+
+In particular, AUC values approaching 1.0 in this dataset reflect a property of the dataset construction, not a generalization claim. See [Known limitations](/validation/known-limitations) for the explicit treatment.

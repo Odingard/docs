@@ -1,0 +1,94 @@
+---
+title: "Paper 2: Empirical hardening"
+description: "IEEE-grade empirical evaluation. Head-to-head benchmarks, ablations, sensitivity, real-world proxy validation."
+---
+
+## Status
+
+**Version 5.** All seven IEEE reviewer attack categories addressed.
+
+Submission target: **{{ INSERT TARGET VENUE }}**
+
+## Abstract
+
+Confidence-scoring frameworks are commonly proposed and rarely subjected to peer-review-grade empirical validation. This paper presents that validation for VERDICT WEIGHT, an eight-stream composition framework introduced in Paper 1. The empirical evaluation is structured around the seven attack categories most commonly applied by IEEE-grade reviewers: (1) head-to-head comparison against established baselines, (2) ablation studies establishing per-component necessity, (3) hyperparameter sensitivity analysis, (4) effect-size reporting with multiple-comparison correction, (5) computational complexity analysis with empirical wall-clock validation, (6) calibration-curve analysis, and (7) real-world proxy validation on a non-synthetic dataset.
+
+Headline results: VERDICT WEIGHT outperforms Dempster-Shafer, Naive Bayes, Simple Averaging, and Max Voting on all four headline metrics (reliability error, AUC, Brier score, ECE) on a 120-record real-world proxy dataset constructed from NIST NVD and CISA KEV. The reliability-error improvement over Simple Averaging is approximately **9.6&times;** (REL = 0.0019 vs. 0.018). All differences are statistically significant under Bonferroni correction with effect sizes (Cohen's d) in the meaningful range. Ablation studies establish that each of the eight streams contributes a measurable and statistically significant share of the total improvement.
+
+The paper documents one important dataset artifact (AUC values approaching 1.0 on this dataset reflect label-evidence coupling rather than a generalization claim) and enumerates the limitations of the empirical work in detail. The framework's case rests on REL, not AUC.
+
+## What is in the paper
+
+<CardGroup cols={2}>
+  <Card title="Section 4.1-4.4: Head-to-head" icon="trophy">
+    Benchmark methodology and per-method per-metric results.
+  </Card>
+  <Card title="Section 4.5: Mutation" icon="bug">
+    Mutation-testing methodology and catch-rate results.
+  </Card>
+  <Card title="Section 4.6: Calibration" icon="gauge">
+    Reliability curves and per-bin breakdown.
+  </Card>
+  <Card title="Section 4.7: Significance" icon="square-root-variable">
+    Effect sizes and Bonferroni-corrected significance.
+  </Card>
+  <Card title="Section 4.8: Ablations" icon="table-list">
+    Per-stream necessity demonstration.
+  </Card>
+  <Card title="Section 4.9: Complexity" icon="gauge-high">
+    Formal bounds and empirical wall-clock measurements.
+  </Card>
+  <Card title="Section 4.10: Real-world proxy" icon="microscope">
+    NVD/KEV dataset construction and per-method results.
+  </Card>
+  <Card title="Section 5: Limitations" icon="triangle-exclamation">
+    Honest enumeration including the AUC artifact treatment.
+  </Card>
+</CardGroup>
+
+## Where to read it
+
+**{{ INSERT PRE-PRINT URL }}**
+
+<Note>
+  Drop in the pre-print URL once posted (arXiv, SSRN, or institutional repository).
+</Note>
+
+## Reproducing the results
+
+Every numerical claim in the paper is reproducible from the published artifact:
+
+```bash
+git clone https://github.com/Odingard/verdict-weight.git
+cd verdict-weight
+pip install -e ".[benchmarks]"
+
+# Head-to-head
+python -m verdict_weight.benchmarks.head_to_head
+
+# Ablations
+python -m verdict_weight.benchmarks.ablation
+
+# Real-world proxy (snapshot mode)
+python -m verdict_weight.benchmarks.real_world --snapshot-date YYYY-MM-DD
+```
+
+Results match the published numbers within floating-point tolerance.
+
+## The seven IEEE attack categories addressed
+
+| # | Reviewer concern | Where addressed |
+|---|---|---|
+| 1 | "Did you compare against meaningful baselines?" | Sections 4.1&ndash;4.4 |
+| 2 | "Did you show every component is necessary?" | Section 4.8 |
+| 3 | "Are your numbers stable to hyperparameter choice?" | Sensitivity analysis (full) |
+| 4 | "Are the differences statistically meaningful?" | Section 4.7 |
+| 5 | "What does this cost to run?" | Section 4.9 |
+| 6 | "Is the calibration claim empirically justified?" | Section 4.6 |
+| 7 | "Did you test on anything resembling real data?" | Section 4.10 |
+
+## Companion materials
+
+- **Source code**: [github.com/Odingard/verdict-weight](https://github.com/Odingard/verdict-weight)
+- **Archived snapshot (DOI)**: [10.5281/zenodo.19447547](https://doi.org/10.5281/zenodo.19447547)
+- **Full validation walkthrough**: [Validation & Research](/validation/head-to-head-comparison) tab

@@ -1,0 +1,78 @@
+---
+title: "Known limitations"
+description: "Honest enumeration of what the validation does and does not establish."
+---
+
+## Why this page exists
+
+A confidence-scoring framework that publishes results without publishing limitations is failing at its own subject matter. This page enumerates the limitations of the validation work, in the same plain language the rest of the documentation uses.
+
+These limitations were identified during IEEE-grade peer-review preparation and addressed where possible. Where they could not yet be addressed, they are documented here.
+
+## Dataset limitations
+
+### Single real-world proxy
+
+The headline empirical results are reported on one real-world proxy dataset (CVE / KEV; see [CVE dataset](/validation/cve-dataset)). One dataset is one dataset. Generalization to other domains has not been empirically demonstrated, and the framework does not claim it.
+
+The mitigation is empirical refitting and re-validation in the deployment domain, not extrapolation.
+
+### AUC ≈ 1.0 is a dataset artifact, not a generalization claim
+
+On the CVE dataset, several methods (including VERDICT WEIGHT) achieve AUC very close to 1.0. This is a property of the dataset construction &mdash; the KEV inclusion label correlates strongly with several input evidence channels by design.
+
+This caveat is repeated here because it would be straightforwardly misleading to lead with "AUC ≈ 1.0" as a performance claim when the underlying number reflects label-evidence coupling rather than generalization.
+
+The framework's real-world case rests on **REL** (reliability error), where the differentiation between methods is meaningful and persistent across plausible dataset variations. See [Calibration curves](/validation/calibration-curves).
+
+### Class balance is constructed
+
+The 120-CVE dataset is class-balanced by construction. Real deployments will be imbalanced. Refitting the calibration map on representative data is the appropriate response &mdash; the framework provides tooling for this. The published reliability number on this dataset should not be assumed to transfer unchanged to imbalanced deployments.
+
+### Synthetic adversarial benchmarks for Stream 6
+
+[Stream 6](/streams/06-sis-curveball-detection) is benchmarked on synthetically constructed Curveball-class adversarial inputs because no public real-world adversarial CVE corpus exists. Synthetic adversarial benchmarks are weaker than real-world ones; we report what we have and document the limitation.
+
+## Methodological limitations
+
+### Threat-model bound
+
+The completeness argument (see [Completeness proof](/architecture/completeness-proof)) is asserted relative to a documented failure-class taxonomy. A deployment whose threat model includes failure classes outside that taxonomy will need additional layers. The framework does not silently expand its coverage claim.
+
+### No security-against-adaptive-adversary claim
+
+Stream 6 raises the cost of the Curveball attack class. It does not claim provable security against an adaptive white-box adversary. An attacker with full knowledge of the framework, the fingerprinting strategy, and the validation distribution can in principle craft attacks that evade Stream 6. The framework's empirical detection rates are reported under stated attack budgets in [Curveball attack class](/gov/curveball-attack-class).
+
+### Calibration is in-distribution
+
+The calibration guarantee from [Stream 5](/streams/05-calibration) is empirical and in-distribution. Out-of-distribution inputs are detected through epistemic uncertainty (Stream 2) and cross-source coherence (Stream 4), but the calibration map itself does not extrapolate. Operators in domains with significant distributional shift must refit.
+
+### Reproducibility is environment-bound
+
+Reproducing published numbers requires the published snapshot of NVD and KEV. Attempting to reproduce against the live data sources will produce slightly different numbers because both sources evolve. This is a property of any real-world-data benchmark, not a defect specific to this framework.
+
+## Engineering limitations
+
+### Single-writer audit log
+
+The audit chain is single-writer. High-throughput deployments split into multiple processes with separate logs reconciled offline. There is no built-in distributed-consensus log; building one was deliberately out of scope for this framework. Operators with strong distributed-log requirements should layer the audit chain on top of their existing infrastructure.
+
+### Latency floor
+
+Stream 3 (Temporal stability) requires multiple model evaluations per scoring call when configured with `perturbation_count > 1`. This is the framework's most expensive single configuration. Latency-sensitive deployments may set this to 1, accepting weaker drift detection. The trade-off is documented; the framework does not pretend it is free.
+
+### Custom-stream extension is research-grade
+
+The custom-stream API ([Streams](/api/streams)) is a research and extension surface, not a production interface. Custom-stream-augmented scoring is not interchangeable with standard VERDICT WEIGHT scoring for compliance or audit purposes. The audit chain records custom-stream usage explicitly.
+
+## What we do *not* claim
+
+For clarity, the framework explicitly does not claim:
+
+- Universal calibration across all domains and all upstream model stacks.
+- Provable security against adaptive adversaries.
+- That eight streams is the minimum or maximum useful number.
+- That the validation dataset is representative of any specific deployment.
+- That AUC ≈ 1.0 generalizes off the CVE dataset.
+
+Each of these would be a stronger claim than the validation supports. The framework declines to make them.

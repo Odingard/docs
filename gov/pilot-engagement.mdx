@@ -1,0 +1,106 @@
+---
+title: "Pilot engagement"
+description: "How to scope, run, and evaluate a VERDICT WEIGHT pilot in a high-stakes deployment."
+---
+
+## What a pilot looks like
+
+A VERDICT WEIGHT pilot is a structured engagement with three distinct phases. Each phase produces concrete deliverables that survive the engagement, regardless of whether the pilot continues to the next phase.
+
+<Steps>
+  <Step title="Phase 1: Alignment and feasibility (2-4 weeks)">
+    Map the deployment's threat model and decision flow to the framework's failure-class taxonomy. Integrate the framework with the existing model stack in a non-production environment. Produce a baseline calibration measurement on representative data.
+  </Step>
+  <Step title="Phase 2: Prototype and validation (6-12 weeks)">
+    Refit the calibration map on mission-representative data. Validate Curveball detection against a mission-relevant adversarial corpus. Integrate audit-chain logging with the operator's existing infrastructure. Run the framework alongside production decisioning in shadow mode.
+  </Step>
+  <Step title="Phase 3: Production transition (8-16 weeks)">
+    Promote the framework from shadow mode to active gating. Establish operator runbooks for the kill switch, audit verification, and incident response. Train on-call engineers. Document sustainment.
+  </Step>
+</Steps>
+
+The phase boundaries are decision points. Each phase produces enough information to decide whether the next phase is justified.
+
+## What we ask for from the deploying organization
+
+A productive pilot requires four things from the operator's side:
+
+| What | Why |
+|---|---|
+| A specific decision flow | The pilot needs a concrete decision to score, not a generic "AI integration" goal. |
+| Representative validation data | Refitting calibration requires labeled data from the deployment domain. A few hundred records is typically enough. |
+| A point of technical contact | One named engineer who can answer integration questions in days rather than weeks. |
+| Defined success criteria | What does the pilot need to demonstrate to justify production transition? Defined up front. |
+
+If any of these four are missing, the pilot is unlikely to produce useful results regardless of the framework's quality.
+
+## What we provide
+
+| Pilot phase | What we deliver |
+|---|---|
+| Phase 1 | Threat-model mapping document; integration scaffold; baseline measurements. |
+| Phase 2 | Refitted calibration map; mission-specific adversarial test corpus; audit-chain integration. |
+| Phase 3 | Production-ready configuration; operator runbooks; training materials. |
+
+Across all phases: hands-on engineering support from the framework's primary author, written documentation of decisions and trade-offs, and a final report suitable for internal review or external acquisition documentation.
+
+## How long does a pilot take
+
+The phase durations above are typical, not contractual. Faster pilots are possible when the deploying organization has a well-defined decision flow and good validation data already on hand. Slower pilots are sometimes appropriate when the threat model is novel and warrants careful study before integration.
+
+A reasonable expectation for a defense or critical-infrastructure pilot from first call to production transition is **four to nine months**. Internal-tooling pilots can be substantially shorter.
+
+## What success looks like
+
+A successful pilot, at the end of Phase 3, produces:
+
+1. **A measurably calibrated confidence layer** in production, with reliability error in the published range on the deployment's actual data.
+2. **A working audit primitive** integrated with the operator's logging and review infrastructure, validated end-to-end.
+3. **An adversarial test corpus** specific to the deployment, with documented detection rates from Stream 6.
+4. **An incident response runbook** that includes kill-switch procedures, chain-recovery procedures, and escalation paths.
+5. **A sustainment plan** that does not depend on the framework's primary author for ongoing operation.
+
+Item 5 is non-negotiable. A pilot that produces a working integration but cannot be sustained without the original engineer is not a successful pilot.
+
+## What unsuccessful looks like
+
+It is more useful to be honest about this than to pretend it does not happen. A pilot can fail in several recognizable ways:
+
+- **Threat-model mismatch**: the deployment's actual threats are outside the framework's documented taxonomy. Better to discover this in Phase 1 than in production.
+- **Insufficient validation data**: the operator cannot supply representative labeled data, so calibration cannot be verified. The framework can still be deployed, but the calibration claim does not transfer.
+- **Integration cost too high**: the upstream model stack is sufficiently brittle that the framework cannot be integrated without substantial upstream rework. This is rare but it does happen.
+- **Threshold mis-specification**: the deployment's cost structure produces an action threshold that the framework's empirical reliability cannot meet on this data. This is information; it is not a failure mode of the framework.
+
+In each case, ending the pilot at the end of the affected phase is the right call. The deliverables from earlier phases still have value.
+
+## Cost structure
+
+Pilot cost depends on phase scope, data sensitivity, and integration complexity. Typical structures:
+
+| Pilot type | Typical structure |
+|---|---|
+| Government (CSO / OT) | Per the contracting vehicle. See [AFWERX CSO](/gov/afwerx-cso). |
+| Regulated commercial | Fixed-price per phase with defined deliverables. |
+| Internal tooling | Time-and-materials with weekly cost caps. |
+| Research collaboration | In-kind exchange (data, validation, co-publication). |
+
+For specific pricing on a specific scope, the conversation starts with [andre.byrd@odingard.com](mailto:andre.byrd@odingard.com).
+
+## How to start
+
+<Steps>
+  <Step title="Send an email">
+    [andre.byrd@odingard.com](mailto:andre.byrd@odingard.com). Include the deployment context and the specific decision flow you want to score.
+  </Step>
+  <Step title="30-minute alignment call">
+    Confirm fit. Map the threat model. Identify whether a pilot is the right next step or whether something earlier (technical evaluation, threat-model review) is more appropriate.
+  </Step>
+  <Step title="Phase 1 statement of work">
+    Written, scoped, with deliverables and success criteria.
+  </Step>
+  <Step title="Begin">
+    Phase 1 typically starts within two weeks of statement-of-work agreement.
+  </Step>
+</Steps>
+
+The framework is in production-ready condition. The bottleneck is alignment, not engineering.

@@ -1,0 +1,61 @@
+---
+title: "Why it matters"
+description: "Confidence is the missing layer between deployable AI and auditable AI."
+---
+
+## The autonomy gap
+
+Every high-stakes deployment of AI faces the same question: *when is the system confident enough to act, and when must it escalate?*
+
+That question has, until now, had no defensible answer. Softmax probabilities are miscalibrated by orders of magnitude. Verbalized self-confidence from LLMs correlates poorly with correctness. Ensemble agreement papers over the disagreement that should have triggered abstention.
+
+The result is a brittle deployment posture: either the system acts on confidence it has not earned, or it escalates so frequently that human review becomes the bottleneck.
+
+## Where existing approaches fall short
+
+<AccordionGroup>
+  <Accordion title="Softmax / model-native confidence">
+    Modern neural networks are systematically overconfident, especially on out-of-distribution inputs. The probability score reported by the model is rarely a faithful estimate of correctness.
+  </Accordion>
+
+  <Accordion title="Dempster-Shafer evidence theory">
+    Mathematically rigorous, but combinatorially expensive and brittle under conflicting evidence. Produces meaningful results only when sources are well-calibrated, which is the problem we started with.
+  </Accordion>
+
+  <Accordion title="Naive Bayes fusion">
+    Assumes source independence that almost never holds in practice. Cross-source correlation collapses the variance estimate and produces overconfident posteriors.
+  </Accordion>
+
+  <Accordion title="Simple averaging / max voting">
+    Trades calibration for simplicity. Provides no mechanism for penalizing instability, detecting adversarial inputs, or producing an audit trail.
+  </Accordion>
+
+  <Accordion title="LLM-as-judge / self-evaluation">
+    Reflects the model's *aspirations* about its own correctness, not its actual error distribution. Particularly unreliable under adversarial conditions.
+  </Accordion>
+</AccordionGroup>
+
+## What changes with a confidence layer
+
+A defensible confidence layer changes three things at deployment:
+
+1. **Thresholding becomes principled.** Instead of choosing an opaque cut-off, operators can choose a calibrated reliability target (e.g. "act only when the system would be correct ≥ 99% of the time").
+2. **Audit becomes possible.** Every decision is reproducible, signed, and chained. Regulators, internal reviewers, and counsel can reconstruct *why* the system acted.
+3. **Adversarial robustness becomes testable.** Confidence can be deliberately attacked. VERDICT WEIGHT&trade; treats this as a first-class problem (see [Stream 6](/streams/06-sis-curveball-detection)).
+
+## Where this matters most
+
+<CardGroup cols={2}>
+  <Card title="Defense & national security" icon="shield-halved" href="/gov/threat-model">
+    Adversarial autonomy. Tamper-evident decisioning. Kill-switch primitives.
+  </Card>
+  <Card title="Regulated industry" icon="scale-balanced">
+    Healthcare triage, financial compliance, legal review &mdash; anywhere the question "why did the system decide that?" must be answerable.
+  </Card>
+  <Card title="Critical infrastructure" icon="bolt">
+    Energy, transportation, communications &mdash; any deployment where a confidently-wrong decision is a safety event.
+  </Card>
+  <Card title="Agentic systems" icon="robot">
+    Multi-step autonomous workflows where compounding overconfidence becomes a systemic risk.
+  </Card>
+</CardGroup>

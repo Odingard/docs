@@ -1,0 +1,98 @@
+---
+title: "Streams"
+description: "Direct access to individual stream evaluators for debugging, ablation, and custom composition."
+---
+
+## When to access streams directly
+
+Most callers should use [Scorer](/api/scorer) or [Pipeline](/api/pipeline). Direct stream access is appropriate when:
+
+- You are running ablation experiments (replicating the [necessity argument](/architecture/completeness-proof)).
+- You are debugging a specific stream's contribution to a misbehaving score.
+- You are integrating a stream's signal into a non-VERDICT-WEIGHT pipeline (for research, not production).
+
+## Listing the streams
+
+```python
+from verdict_weight import Scorer
+
+scorer = Scorer()
+for stream in scorer.streams:
+    print(stream.id, stream.name, stream.is_hardening)
+```
+
+Output:
+
+```
+1  evidence_aggregation       False
+2  uncertainty_quantification False
+3  temporal_stability         False
+4  cross_source_coherence     False
+5  calibration                False
+6  sis_curveball              True
+7  cps_hash_chain             True
+8  ris_registry_kill_switch   True
+```
+
+## Evaluating a single stream
+
+```python
+contribution = scorer.streams[0].evaluate(
+    prediction=...,
+    evidence={...},
+)
+
+print(contribution.confidence)
+print(contribution.weight)
+print(contribution.abstained)
+```
+
+The returned `StreamContribution` is structurally identical to the per-stream entries in `ScoreResult.stream_breakdown`.
+
+## Ablation: scoring without a stream
+
+Ablation can be performed by configuring a scorer with a stream disabled:
+
+```python
+from verdict_weight import Scorer, ScorerConfig
+
+config = ScorerConfig(disable_streams={6})  # disable Curveball detection
+scorer_no_s6 = Scorer(config=config)
+```
+
+This is exactly the configuration used in the [ablation studies](/validation/ablation-studies). Disabling a stream is recorded in the audit chain so that ablation runs are not mistaken for production scores.
+
+<Warning>
+  Production deployments should not run with hardening streams (6, 7, or 8) disabled. The framework does not prevent this configuration &mdash; some research and benchmarking workflows require it &mdash; but it does mark every disabled-stream scoring event in the audit log so that downstream review can identify them.
+</Warning>
+
+## Custom streams
+
+The framework supports caller-supplied custom streams for research and extension. A custom stream is a class implementing the `Stream` protocol:
+
+```python
+from verdict_weight import Stream, StreamContribution
+
+class MyCustomStream(Stream):
+    id = 99
+    name = "my_custom"
+    is_hardening = False
+
+    def evaluate(self, *, prediction, evidence, context) -> StreamContribution:
+        # ... your logic ...
+        return StreamContribution(
+            confidence=...,
+            weight=...,
+            abstained=...,
+        )
+```
+
+Custom streams can be registered with a scorer:
+
+```python
+scorer = Scorer(custom_streams=[MyCustomStream()])
+```
+
+<Note>
+  Custom streams are an extension surface for research and validation. They are recorded in the audit chain by their declared `id` and `name`. Custom-stream-augmented scoring should not be treated as equivalent to standard VERDICT WEIGHT scoring for compliance or audit purposes.
+</Note>

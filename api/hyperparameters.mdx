@@ -1,0 +1,93 @@
+---
+title: "Hyperparameters"
+description: "Configurable surface across the eight streams. Defaults are conservative; tune deliberately."
+---
+
+## Philosophy
+
+VERDICT WEIGHT exposes a deliberately small hyperparameter surface. Each parameter has a documented default that has been validated under the [IEEE hardening](/validation/hyperparameter-sensitivity) protocol. The defaults are conservative &mdash; biased toward higher abstention and lower false-positive rates &mdash; so that an out-of-the-box deployment fails safely rather than produces overconfident scores.
+
+Tune parameters only with concrete validation data from your deployment domain.
+
+## Per-stream weights
+
+Each core stream (1&ndash;5) has a weight in the composition. Defaults are equal:
+
+```toml
+[streams.weights]
+evidence_aggregation = 1.0
+uncertainty_quantification = 1.0
+temporal_stability = 1.0
+cross_source_coherence = 1.0
+calibration = 1.0
+```
+
+Weights are normalized at composition time, so absolute magnitudes do not matter; only ratios do.
+
+## Action threshold
+
+The threshold above which `should_act` is set:
+
+```toml
+[gating]
+action_threshold = 0.85   # default
+```
+
+This is the most consequential single parameter in the framework. A higher threshold means fewer actions and more escalations; a lower threshold means more actions and a higher rate of acting on weak evidence. The right value depends entirely on the cost asymmetry of false positives versus false negatives in your deployment.
+
+## Abstention rules
+
+```toml
+[abstention]
+core_abstention_max = 2          # max abstaining core streams before forced abstain
+coherence_min = 0.4              # min Stream 4 coherence before forced abstain
+epistemic_max = 0.7              # max Stream 2 epistemic before forced abstain
+```
+
+The defaults make abstention easy to trigger. This is intentional: a deployment that abstains too often is correctable; a deployment that fails to abstain when it should is dangerous.
+
+## Stream 6 (Curveball) sensitivity
+
+```toml
+[streams.sis]
+significance_threshold = 0.95    # confidence level for veto trigger
+fingerprint_perturbations = 8    # number of perturbations per evaluation
+```
+
+Higher `significance_threshold` means fewer false vetoes but more missed detections. Operators should retune this against representative adversarial test cases for their deployment.
+
+## Stream 3 (Temporal stability) cost knob
+
+```toml
+[streams.temporal]
+perturbation_count = 3           # default; raise for stability resolution, lower for latency
+strategy = "paraphrase"          # one of: paraphrase, reorder, resample, mixed
+```
+
+This is the most expensive single configuration in the framework, since it controls how many additional model evaluations happen per scoring call. Latency-sensitive deployments may set this to 1 and rely on Stream 4 for the same protection.
+
+## Audit chain
+
+```toml
+[audit]
+log_path = "/var/log/verdict-weight/chain.log"
+signing_key_id = "ops-key-2026"
+checkpoint_every = 10000         # records before checkpoint rotation
+```
+
+`signing_key_id` is required for audit-bound deployments. The framework will run without it but will warn loudly on every startup; this is intentional.
+
+## Recommended deployment posture
+
+| Deployment type | Action threshold | Stream 3 perturbations | Stream 6 significance |
+|---|---|---|---|
+| Defense / national security | 0.95 | 5+ | 0.99 |
+| Regulated industry | 0.90 | 3 | 0.95 |
+| Internal tooling | 0.80 | 1&ndash;3 | 0.90 |
+| Research / experimentation | 0.70 | 1 | 0.80 |
+
+These are starting points, not endorsements. Validate against domain-representative data.
+
+## Sensitivity analysis
+
+The empirical sensitivity of headline metrics to each hyperparameter is reported in **Paper 2**. The summary: VERDICT WEIGHT's quality metrics are robust to ±20% perturbation around the defaults across all configurable parameters. This is the basis for the "tuning is not a deployment-blocking step" claim &mdash; defaults work reasonably out of the box, and tuning beyond defaults yields incremental rather than categorical improvement.

@@ -1,0 +1,98 @@
+---
+title: "Threat model"
+description: "What VERDICT WEIGHT defends against, and why that matters in defense and critical-infrastructure deployments."
+---
+
+## Why a threat model matters here
+
+A confidence-scoring framework that does not state its threat model is a framework that cannot be evaluated for fitness against any specific deployment. VERDICT WEIGHT's threat model is documented explicitly so that operators, architects, and acquisition-side reviewers can decide whether the framework is the right shape for their problem &mdash; and so that the framework is not credited with defenses it does not provide.
+
+This page is the operational summary of the threat model. The formal treatment is in **Paper 3**.
+
+## Adversary capabilities considered
+
+The framework's defenses are designed against an adversary with the following capabilities:
+
+| Capability | Considered |
+|---|---|
+| Knowledge of the public framework design | Yes |
+| Knowledge of the deployed configuration | Partial &mdash; depends on operator OPSEC |
+| Black-box query access to the deployed scorer | Yes |
+| White-box knowledge of the upstream model | Yes (this is the upstream system's threat model, not the framework's) |
+| Ability to modify inputs to the scorer | Yes (this is what hardening streams target) |
+| Ability to modify the scoring layer itself | Defended by Streams 7, 8 |
+| Ability to modify the audit log offline | Defended by Stream 7 |
+| Adaptive white-box adversary against fingerprinting in Stream 6 | **Not** claimed defended &mdash; see [Curveball attack class](/gov/curveball-attack-class) |
+
+## Failure classes addressed
+
+The framework's failure-class taxonomy (F1&ndash;F8) is documented in [Completeness proof](/architecture/completeness-proof). Summarized for operational use:
+
+<AccordionGroup>
+  <Accordion title="F1: Miscalibrated raw confidence">
+    Standard model outputs are systematically overconfident. The framework corrects this through evidence-aware aggregation (Stream 1) and post-hoc reliability mapping (Stream 5).
+  </Accordion>
+  <Accordion title="F2: Source-correlation collapse">
+    Naive Bayesian fusion treats correlated sources as independent and produces overconfident posteriors. Stream 4 measures cross-source coherence directly.
+  </Accordion>
+  <Accordion title="F3: Aleatoric/epistemic conflation">
+    Conflating noise with knowledge gaps produces miscalibrated out-of-distribution behavior. Stream 2 decomposes them.
+  </Accordion>
+  <Accordion title="F4: Confidence drift on equivalent inputs">
+    A known LLM failure mode: paraphrasing flips confidence even when prediction is unchanged. Stream 3 penalizes this directly.
+  </Accordion>
+  <Accordion title="F5: Curveball-class adversarial inputs">
+    Adversarial inputs that flip *confidence* without flipping *prediction* &mdash; the natural attack against confidence-gated autonomy. Stream 6 detects them.
+  </Accordion>
+  <Accordion title="F6: Tampering with historical decisions">
+    An attacker who can rewrite the audit trail can hide the basis of any past action. Stream 7's hash chain makes this tamper-evident.
+  </Accordion>
+  <Accordion title="F7: Compromise of the scoring layer">
+    The framework itself is part of the threat surface. Stream 8's registry kill switch raises automatically on integrity failure and refuses to score until an operator restores trust.
+  </Accordion>
+  <Accordion title="F8: Forced classification under contradictory evidence">
+    Most fusion frameworks force an answer even when their inputs disagree. The composition rule treats abstention as a first-class output.
+  </Accordion>
+</AccordionGroup>
+
+## What is *not* defended
+
+To be useful, a threat model has to state what is *out of scope* as clearly as what is in scope. The framework explicitly does not claim to defend against:
+
+<Warning>
+  **Compromise of the upstream model itself.** If the model produces actively malicious outputs, the framework can detect inconsistency (Streams 3, 4) and out-of-distribution behavior (Stream 2), but it does not replace the model's own integrity controls.
+</Warning>
+
+<Warning>
+  **Adaptive adversaries with full white-box knowledge of fingerprinting.** Stream 6 raises the cost of confidence-flip attacks; it does not claim provable security against an attacker who knows the framework, the fingerprint band, and the validation distribution and crafts inputs accordingly.
+</Warning>
+
+<Warning>
+  **Failures of operator OPSEC.** A signing key in cleartext on a writable filesystem is a failure mode the framework cannot detect. The audit chain's integrity assumes operator-controlled keys are operator-controlled in fact, not just in name.
+</Warning>
+
+<Warning>
+  **Out-of-distribution calibration.** Stream 5's reliability map is empirical and in-distribution. Out-of-distribution behavior is *flagged* by Streams 2 and 4, but reported confidence on out-of-distribution inputs is not guaranteed to be calibrated.
+</Warning>
+
+## Why the framework is built for adversarial environments
+
+The hardening layer (Streams 6, 7, 8) is the structural reason VERDICT WEIGHT is positioned for defense and critical infrastructure rather than for general developer tooling. Each of the three hardening streams targets a failure class that a general-purpose deployment can typically tolerate but that a defense-grade deployment cannot:
+
+- **Curveball detection (Stream 6)** is the natural defense against confidence-gated autonomous systems being weaponized against their operators.
+- **Hash-chain integrity (Stream 7)** is the audit primitive for after-action review, regulatory compliance, and legal discovery.
+- **Registry kill switch (Stream 8)** is the safe-failure-by-default behavior that operators in high-consequence environments require.
+
+Together they distinguish a confidence layer that is *deployment-ready in adversarial environments* from one that is *a research curiosity*.
+
+## Mapping the threat model to deployment scenarios
+
+| Deployment | Most relevant streams |
+|---|---|
+| Defense / national security | All eight; Stream 6 is the differentiator |
+| Critical infrastructure | All eight; Streams 7, 8 are the audit/compliance anchors |
+| Regulated industry (healthcare, finance, legal) | Streams 1&ndash;5 + Stream 7 for audit |
+| Internal tooling | Streams 1&ndash;5; hardening optional |
+| Research / experimentation | Configurable; ablation-friendly |
+
+See [Pilot engagement](/gov/pilot-engagement) for how to map a specific deployment scenario to a configuration.

@@ -1,0 +1,198 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "VERDICT WEIGHT",
+  "description": "Confidence scoring framework for autonomous AI systems. USPTO-protected, IEEE-validated, defense-ready.",
+  "colors": {
+    "primary": "#0F4C3A",
+    "light": "#10B981",
+    "dark": "#064E3B"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Get Started",
+        "groups": [
+          {
+            "group": "Introduction",
+            "pages": [
+              "index",
+              "introduction/what-is-verdict-weight",
+              "introduction/why-it-matters",
+              "introduction/quickstart"
+            ]
+          },
+          {
+            "group": "Installation",
+            "pages": [
+              "install/pypi",
+              "install/from-source",
+              "install/verification"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Architecture",
+        "groups": [
+          {
+            "group": "Overview",
+            "pages": [
+              "architecture/overview",
+              "architecture/eight-stream-composition",
+              "architecture/completeness-proof"
+            ]
+          },
+          {
+            "group": "Core Streams (1-5)",
+            "pages": [
+              "streams/01-evidence-aggregation",
+              "streams/02-uncertainty-quantification",
+              "streams/03-temporal-stability",
+              "streams/04-cross-source-coherence",
+              "streams/05-calibration"
+            ]
+          },
+          {
+            "group": "Hardening Streams (6-8)",
+            "pages": [
+              "streams/06-sis-curveball-detection",
+              "streams/07-cps-hash-chain-integrity",
+              "streams/08-ris-registry-kill-switch"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Python SDK",
+            "pages": [
+              "api/scorer",
+              "api/pipeline",
+              "api/streams",
+              "api/registry"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "api/hyperparameters",
+              "api/thresholds",
+              "api/audit-logging"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Validation & Research",
+        "groups": [
+          {
+            "group": "IEEE Hardening",
+            "pages": [
+              "validation/head-to-head-comparison",
+              "validation/ablation-studies",
+              "validation/calibration-curves",
+              "validation/complexity-analysis"
+            ]
+          },
+          {
+            "group": "Real-World Proxy",
+            "pages": [
+              "validation/cve-dataset",
+              "validation/nvd-kev-methodology",
+              "validation/known-limitations"
+            ]
+          },
+          {
+            "group": "Test Suite",
+            "pages": [
+              "testing/coverage-overview",
+              "testing/fuzz-and-mutation",
+              "testing/formal-verification"
+            ]
+          },
+          {
+            "group": "Papers",
+            "pages": [
+              "papers/paper-1-foundation",
+              "papers/paper-2-empirical",
+              "papers/paper-3-architecture"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Government & Defense",
+        "groups": [
+          {
+            "group": "Defense Positioning",
+            "pages": [
+              "gov/threat-model",
+              "gov/curveball-attack-class",
+              "gov/audit-and-compliance"
+            ]
+          },
+          {
+            "group": "Acquisition Pathways",
+            "pages": [
+              "gov/afwerx-cso",
+              "gov/pilot-engagement"
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "GitHub",
+          "href": "https://github.com/Odingard/verdict-weight",
+          "icon": "github"
+        },
+        {
+          "anchor": "PyPI",
+          "href": "https://pypi.org/project/verdict-weight/",
+          "icon": "python"
+        },
+        {
+          "anchor": "Zenodo (DOI)",
+          "href": "https://doi.org/10.5281/zenodo.19447547",
+          "icon": "book"
+        }
+      ]
+    }
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg",
+    "href": "https://odingard.com"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Contact",
+        "href": "mailto:andre.byrd@odingard.com"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Request Pilot",
+      "href": "mailto:andre.byrd@odingard.com?subject=VERDICT%20WEIGHT%20Pilot%20Inquiry"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/Odingard"
+    }
+  },
+  "seo": {
+    "metatags": {
+      "og:site_name": "VERDICT WEIGHT",
+      "og:title": "VERDICT WEIGHT - Confidence Scoring for Autonomous AI"
+    },
+    "indexing": "navigable"
+  }
+}

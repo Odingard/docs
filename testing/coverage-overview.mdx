@@ -1,0 +1,83 @@
+---
+title: "Coverage overview"
+description: "673 tests across 27 suites covering fuzz, mutation, differential, regression, concurrency, and formal verification."
+---
+
+## Headline numbers
+
+| Metric | Value |
+|---|---|
+| Tests | **673** |
+| Suites | **27** |
+| Pass rate (CI) | 100% |
+
+The full suite is required to pass on every release. Releases that do not pass 673/673 are not promoted to PyPI.
+
+## Suite categories
+
+The 27 suites fall into seven categories. Each category targets a distinct kind of failure mode.
+
+<CardGroup cols={2}>
+  <Card title="Functional" icon="circle-check">
+    Standard input/output correctness. The largest suite category.
+  </Card>
+  <Card title="Fuzz" icon="dice">
+    Randomized inputs across stream interfaces, looking for crashes, hangs, or invariant violations.
+  </Card>
+  <Card title="Mutation" icon="bug">
+    Mutation testing of the source itself. Tests must catch deliberately-injected bugs.
+  </Card>
+  <Card title="Differential" icon="code-compare">
+    Cross-validation between independent implementations of the same stream logic.
+  </Card>
+  <Card title="Regression locks" icon="lock">
+    Pinned outputs on canonical inputs. Catches silent behavioral changes between releases.
+  </Card>
+  <Card title="Concurrency" icon="layer-group">
+    Multi-thread, multi-process, and async scoring patterns. Tests audit-chain integrity under contention.
+  </Card>
+  <Card title="Performance benchmarks" icon="gauge-high">
+    Wall-clock and memory bounds. Failures here are budget violations, not correctness violations.
+  </Card>
+  <Card title="Formal verification" icon="square-root-variable">
+    Property-based and constraint-solver checks of the composition rule and the audit chain invariants. See [Formal verification](/testing/formal-verification).
+  </Card>
+</CardGroup>
+
+## Why this much testing
+
+Three reasons drive the test-suite size:
+
+1. **The framework asserts integrity properties.** A confidence-scoring layer that claims tamper-evident audit must be verifiable to that claim. Property-based and formal-verification suites are how that is done.
+2. **The framework is intended for high-stakes deployment.** Bugs in this layer have the potential to silently mislead downstream pipelines. The cost of a test-suite-detectable bug reaching production is asymmetric &mdash; expensive in production, cheap to catch in CI.
+3. **IEEE-grade peer review is part of the roadmap.** Reviewers are skeptical of frameworks that do not publish their test apparatus. The full suite is published and reproducible.
+
+## Running the suite
+
+```bash
+git clone https://github.com/Odingard/verdict-weight.git
+cd verdict-weight
+pip install -e ".[dev]"
+pytest
+```
+
+Expected output ends with `673 passed`. Runtime is on the order of a few minutes on a modern laptop. The full suite can be run on CPU only; no GPU dependency.
+
+## Continuous integration
+
+Every commit on every branch is subjected to the full suite. Pull requests cannot be merged into `main` without a passing CI run. Release tags require an additional manual sign-off after CI passes.
+
+The CI configuration is in the public repository and can be inspected for completeness.
+
+## Coverage breakdown
+
+The remaining pages in this section drill into the specific test categories that matter most for the framework's claims:
+
+<CardGroup cols={2}>
+  <Card title="Fuzz and mutation" href="/testing/fuzz-and-mutation">
+    The two suite categories that explicitly try to break the framework.
+  </Card>
+  <Card title="Formal verification" href="/testing/formal-verification">
+    Property-based and constraint-solver checks of the composition rule.
+  </Card>
+</CardGroup>

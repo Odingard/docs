@@ -1,0 +1,52 @@
+---
+title: "What is VERDICT WEIGHT?"
+description: "An eight-stream composition that turns model outputs into auditable, calibrated confidence scores."
+---
+
+## The problem
+
+Modern AI systems &mdash; especially autonomous and agentic ones &mdash; produce decisions without producing trustworthy *confidence* about those decisions. Softmax probabilities are miscalibrated. Self-reports from LLMs are aspirational. Ensembles average away the signal that matters most: when *not* to act.
+
+In high-stakes deployments, the absence of a defensible confidence layer is the gap between "deployable AI" and "auditable AI."
+
+## The framework
+
+VERDICT WEIGHT closes that gap by composing eight independent evidence streams into a single confidence score:
+
+<Steps>
+  <Step title="Evidence aggregation (Stream 1)">
+    Combines model outputs, retrieval signals, and structured priors using uncertainty-aware fusion rather than naive averaging.
+  </Step>
+  <Step title="Uncertainty quantification (Stream 2)">
+    Decomposes total uncertainty into aleatoric and epistemic components, exposing what the system *cannot* know.
+  </Step>
+  <Step title="Temporal stability (Stream 3)">
+    Penalizes confidence that fluctuates across semantically equivalent inputs &mdash; a known LLM failure mode.
+  </Step>
+  <Step title="Cross-source coherence (Stream 4)">
+    Cross-checks the decision against independent signal sources; rewards corroboration, surfaces contradiction.
+  </Step>
+  <Step title="Calibration (Stream 5)">
+    Applies post-hoc reliability correction so reported confidence matches empirical correctness.
+  </Step>
+  <Step title="SIS / Curveball detection (Stream 6)">
+    Detects adversarial inputs designed to flip a system's confidence without flipping its prediction.
+  </Step>
+  <Step title="CPS / hash-chain integrity (Stream 7)">
+    Cryptographically chains every scoring event to its predecessor, producing a tamper-evident audit log.
+  </Step>
+  <Step title="RIS / registry kill switch (Stream 8)">
+    A binary, registry-level abort condition that overrides composed confidence when integrity is compromised.
+  </Step>
+</Steps>
+
+## What you get
+
+- A **single calibrated confidence score** suitable for thresholding, gating, or escalation.
+- A **decomposed evidence trail** showing which streams agreed, disagreed, or abstained.
+- A **cryptographic provenance chain** suitable for after-action review, regulatory audit, or legal discovery.
+- A **kill switch** that fires deterministically when adversarial or integrity conditions are detected.
+
+<Note>
+  VERDICT WEIGHT is a **scoring layer**, not a model. It composes signals from whatever model stack you already run. It is model-agnostic, vendor-agnostic, and has no external runtime dependencies on cloud services.
+</Note>

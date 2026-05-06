@@ -1,0 +1,71 @@
+---
+title: "Fuzz and mutation testing"
+description: "Two complementary approaches to finding bugs the unit tests miss."
+---
+
+## Why fuzz and mutation
+
+Standard unit tests verify that the framework behaves correctly on the inputs the test author thought of. Fuzz testing verifies that the framework does not crash, hang, or violate its invariants on inputs the test author *did not* think of. Mutation testing verifies that the test suite itself is doing useful work &mdash; that it would catch real bugs if they were introduced.
+
+The two approaches are complementary. A framework with good unit tests but no fuzz testing is brittle to inputs outside the tested distribution. A framework with good fuzz tests but no mutation testing has untested guarantees about whether the unit tests would actually catch a bug.
+
+VERDICT WEIGHT runs both.
+
+## Fuzz testing
+
+The fuzz suite generates randomized inputs across the stream interfaces and the public API surface, then checks for:
+
+- **Crashes**: any uncaught exception type other than the documented exception types listed in [Pipeline](/api/pipeline).
+- **Hangs**: scoring calls that exceed a generous wall-clock budget.
+- **Invariant violations**: violations of any documented invariant (confidence in `[0, 1]`, audit-chain hash continuity, etc.).
+- **Veto correctness**: hardening-stream vetoes always produce confidence zero and outcome `"abort"`.
+- **Abstention correctness**: abstention always produces no confidence value and outcome `"abstain"`.
+
+Inputs are generated using both random and structured strategies:
+
+- **Random**: arbitrary byte and dictionary structures, including malformed payloads.
+- **Structured**: valid evidence dictionaries with arbitrary value ranges and combinations.
+- **Adversarial**: inputs derived from known adversarial-input recipes for the Curveball class.
+
+The fuzz suite runs as part of CI on every commit. Discovered failures are reproduced as deterministic regression tests so the suite stays fast on subsequent runs.
+
+## Mutation testing
+
+The mutation suite deliberately introduces bugs into the framework source &mdash; inverting comparisons, dropping conditions, swapping operators &mdash; and verifies that the test suite catches each mutation.
+
+A mutation that is *not* caught indicates either:
+
+1. A test gap (the area is undertested), or
+2. An equivalent mutation (the code change is functionally identical), or
+3. Dead code (the area cannot be reached by any test).
+
+Each uncaught mutation is investigated and resolved. The framework's published mutation-test results pin the catch rate above the publication threshold.
+
+The full mutation-test methodology is in **Paper 2, Section 4.5**.
+
+## Why this matters for the framework's claims
+
+The framework asserts integrity properties: the audit chain is tamper-evident, the kill switch is binding, the composition rule respects veto priority. These are not properties that can be verified by unit tests alone. Fuzz and mutation testing together provide the empirical backing for these claims:
+
+- **Fuzz** establishes that no input we tested produces an invariant violation. (Narrower than "no input ever can," but operationally meaningful.)
+- **Mutation** establishes that the unit tests themselves are sensitive to changes that would violate the invariants. (A test suite that passes but does not detect mutations is a test suite that is not actually testing.)
+
+The combination is what makes the framework's integrity claims defensible under peer review.
+
+## Reproducibility
+
+```bash
+# Fuzz suite (deterministic by default; set FUZZ_LIVE=1 for random generation).
+pytest tests/fuzz
+
+# Mutation suite (slow; runs in CI nightly rather than per-commit).
+python -m verdict_weight.testing.mutation
+```
+
+Both suites are part of the published test corpus and can be reproduced from a clean checkout.
+
+## What these tests do *not* establish
+
+Fuzz testing is empirical: it explores inputs but does not enumerate them. Mutation testing exercises the unit suite against a known set of code mutations but does not enumerate all possible bugs.
+
+For properties that require enumeration &mdash; e.g. "the composition rule respects veto priority on every possible input" &mdash; the framework relies on [formal verification](/testing/formal-verification).

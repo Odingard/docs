@@ -1,0 +1,74 @@
+---
+title: "The Curveball attack class"
+description: "Confidence-flip attacks on autonomous AI systems. What they are, why they matter, what Stream 6 does."
+---
+
+## The attack pattern
+
+Standard adversarial-input research targets *prediction*. The literature is full of attacks that flip a classifier's output: cat to dog, stop sign to speed limit, benign email to malicious. Defenses against this class are a mature research area.
+
+Confidence-gated autonomous systems open a second, less-studied attack surface. The attacker does not need to flip the prediction. The attacker needs to flip the *confidence* attached to the prediction, in either direction:
+
+| Direction | Operational effect |
+|---|---|
+| **Confidence inflation** | Drive confidence above the action threshold so the system acts on a decision it should have escalated. |
+| **Confidence deflation** | Drive confidence below the action threshold so the system fails to act on a decision it should have taken. |
+
+Both are operationally damaging. Both are achievable with input perturbations smaller than those required to flip the prediction, because confidence is a continuous value with a more sensitive surface than the discrete decision boundary.
+
+We refer to this attack class as **Curveball** because it changes the trajectory of the decision without obviously changing its target.
+
+## Why this matters specifically for autonomous systems
+
+Confidence gating is the standard architectural pattern for autonomous AI deployment. The system acts when confident; it escalates or abstains when not. This pattern is what makes deployment safe in principle &mdash; the system is supposed to know when it does not know.
+
+Curveball attacks invert this safety pattern. The system *appears* to know what it is doing &mdash; the prediction looks reasonable &mdash; but the confidence gate that was supposed to be the safety check has been manipulated. The attacker has effectively removed the safety control without the operator noticing.
+
+In a defense or critical-infrastructure deployment, this is the worst kind of failure: the system performs *as designed* on every diagnostic, but the gate it relies on is no longer doing its job.
+
+## Stream 6: what is and is not claimed
+
+[Stream 6](/streams/06-sis-curveball-detection) is the framework's defense. The claims are precise:
+
+| Claim | Status |
+|---|---|
+| Naive Curveball attacks are detected at high rates | **Claimed.** Empirical numbers in Paper 2. |
+| Detection rate is robust to attack budget within the validated range | **Claimed.** Sensitivity analysis in Paper 2. |
+| Adaptive Curveball attacks are detected at meaningfully elevated cost | **Claimed.** The attacker must do measurably more work to evade. |
+| Provable security against an adaptive white-box adversary | **Not claimed.** An attacker with full knowledge of the framework, fingerprint band, and validation distribution can in principle craft evasions. |
+| Coverage of every conceivable confidence-manipulation attack | **Not claimed.** Stream 6 targets the documented Curveball class; novel attack patterns may require additional layers. |
+
+These distinctions matter operationally. A system advertised as "Curveball-proof" sets up exactly the false sense of security that adversaries thrive on. A system advertised as "Curveball-detecting at empirically validated rates within a documented threat model" sets up correct expectations.
+
+## Detection methodology
+
+Stream 6 produces a stability fingerprint for the input under controlled perturbations and compares it to the expected fingerprint band derived from in-distribution validation data. The intuition is that benign inputs produce predictable confidence dynamics under perturbation; adversarially-crafted inputs produce anomalous dynamics, because they are operating in a regime the upstream model is not naturally robust in.
+
+The fingerprint comparison is a binary veto signal: if the deviation is significant beyond a configured threshold, Stream 6 raises veto, the composition rule routes the decision to abort, and the audit chain records the detection.
+
+## Why this is the government-positioning differentiator
+
+No other open framework currently composes confidence-flip attack detection with confidence scoring as a single auditable layer. Building this combination requires three things together: a working confidence-scoring substrate, a Curveball-class detection method validated empirically, and an audit primitive that makes detections reviewable after the fact. VERDICT WEIGHT has all three by construction.
+
+This is the operational basis of the framework's defense-tier positioning. The combination is not a marketing claim &mdash; it is reproducible from the published code. See [Defense positioning](/gov/threat-model) for the broader operational case.
+
+## Empirical results
+
+The full empirical detection-rate results, attack-budget sensitivity, and adaptive-adversary cost analysis are in **Paper 2** under the IEEE hardening section. The summary: detection rates remain high across the validated attack budgets, with detection cost to the attacker rising sharply as the attack budget shrinks.
+
+## What operators should do
+
+<Steps>
+  <Step title="Validate Stream 6's threshold against representative attacks">
+    Use the included synthetic Curveball generator to verify detection rates at the threshold you have configured. Tighten the threshold if your operational tolerance demands it.
+  </Step>
+  <Step title="Run periodic adversarial audits">
+    Treat Curveball detection as you would any other security control: validate it against fresh test cases on a regular cadence.
+  </Step>
+  <Step title="Treat detection events as security incidents">
+    A Stream 6 detection in production is not a routine event. The audit chain records it; your incident response should include a process for reviewing and acting on detections.
+  </Step>
+  <Step title="Stay current">
+    The framework's adversarial test corpus is maintained with the package. Pulling updates includes pulling updated test cases.
+  </Step>
+</Steps>

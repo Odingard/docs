@@ -1,0 +1,66 @@
+---
+title: "Ablation studies"
+description: "Empirical demonstration that every stream is necessary. Removing any one degrades coverage."
+---
+
+## What ablation establishes
+
+The completeness argument in [Architecture / completeness proof](/architecture/completeness-proof) has two halves: **coverage** (every failure class is detected by at least one stream) and **necessity** (no stream can be removed without leaving at least one failure class undetected).
+
+Coverage is established structurally. Necessity is established empirically, by ablation. This page summarizes those results.
+
+## Ablation procedure
+
+For each of the eight streams, run the benchmark with that stream disabled and measure the change in the four headline metrics:
+
+<Steps>
+  <Step title="Disable one stream">
+    Configure a scorer with `disable_streams={i}` for a single stream `i`.
+  </Step>
+  <Step title="Re-run the benchmark">
+    Run the head-to-head comparison and the per-failure-class detection rate measurement.
+  </Step>
+  <Step title="Record the delta">
+    Record the change in each metric relative to the full eight-stream configuration.
+  </Step>
+  <Step title="Test for significance">
+    Apply Bonferroni-corrected significance testing across the eight ablation conditions.
+  </Step>
+</Steps>
+
+## Results summary
+
+For each stream, the ablation produces a measurable, statistically significant degradation in at least one metric, with the specific failure class re-admitted as predicted by the completeness analysis.
+
+| Stream removed | Primary failure re-admitted | Metric most affected |
+|---|---|---|
+| 1 (Evidence aggregation) | F1: miscalibrated raw confidence | REL, Brier |
+| 2 (Uncertainty quantification) | F3: aleatoric/epistemic conflation | OOD reliability |
+| 3 (Temporal stability) | F4: confidence drift | Brier (under perturbation) |
+| 4 (Cross-source coherence) | F2: source-correlation collapse | REL (under correlated sources) |
+| 5 (Calibration) | F1: systematic overconfidence | REL, ECE |
+| 6 (SIS / Curveball) | F5: confidence-flip attacks | Adversarial detection rate |
+| 7 (CPS / hash chain) | F6: silent tampering | Audit chain verification |
+| 8 (RIS / kill switch) | F7: scoring-layer compromise | Recovery from compromise |
+
+The full per-stream ablation table with effect sizes (Cohen's d), 95% confidence intervals, and Bonferroni-corrected p-values is in **Paper 2, Section 4.8**.
+
+## What the ablation does *not* establish
+
+Ablation establishes that each individual stream contributes meaningfully to the framework's coverage. It does **not** establish:
+
+- That the streams are *optimal* in their current form. A different version of any single stream might be better; ablation does not test alternative implementations.
+- That eight streams is the *minimum* number. A future version might collapse two streams into a single equivalent component. Ablation tests the current decomposition, not the necessary one.
+- That each stream is necessary in *every* deployment. A deployment whose threat model is a strict subset of the documented taxonomy might rationally disable a hardening stream. The framework allows this configuration; the audit chain records it.
+
+## Reproducibility
+
+```bash
+python -m verdict_weight.benchmarks.ablation
+```
+
+The full ablation suite takes longer than the head-to-head benchmark because it runs each ablation condition independently. Expect roughly N&times; the runtime of the head-to-head benchmark for N ablation conditions. Results match the published numbers within floating-point tolerance.
+
+## Why we publish ablations
+
+Ablation studies are one of the seven attack categories that IEEE-grade reviewers apply to confidence-fusion claims. The framework was hardened against all seven before submission. See [IEEE hardening](/validation/head-to-head-comparison) for the broader context and the other six categories.

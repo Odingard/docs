@@ -1,0 +1,95 @@
+---
+title: "Eight-stream composition"
+description: "The formal composition rule that combines the eight streams into a single confidence score."
+---
+
+## Notation
+
+Let each stream `i` produce a tuple:
+
+$$
+s_i = (c_i, \\, w_i, \\, a_i)
+$$
+
+where:
+- $c_i \\in [0, 1]$ is the stream's confidence contribution,
+- $w_i \\in [0, 1]$ is its weight in the composition,
+- $a_i \\in \\{0, 1\\}$ is an *abstention indicator* &mdash; the stream did not produce a usable signal.
+
+The hardening streams (6, 7, 8) additionally produce a *veto bit* $v_i \\in \\{0, 1\\}$.
+
+## Composition rule
+
+The composed confidence $C$ is defined piecewise:
+
+<Steps>
+  <Step title="Veto check">
+    If any $v_i = 1$ for $i \\in \\{6, 7, 8\\}$, then $C = 0$ and the framework returns an *abort* outcome with the triggering stream identified.
+  </Step>
+  <Step title="Abstention check">
+    If the number of abstaining core streams (1&ndash;5) exceeds a configured threshold $\\tau_a$, then $C$ is undefined and the framework returns *abstain*.
+  </Step>
+  <Step title="Weighted aggregation">
+    Otherwise, $C$ is the weight-normalized aggregate of the non-abstaining core stream contributions:
+
+    $$
+    C = \\frac{\\sum_{i \\in \\text{core}, a_i = 0} w_i \\cdot c_i}{\\sum_{i \\in \\text{core}, a_i = 0} w_i}
+    $$
+  </Step>
+  <Step title="Calibration correction">
+    The aggregated value is then passed through the calibration map produced by Stream 5:
+
+    $$
+    C_{\\text{final}} = \\phi_5(C)
+    $$
+
+    where $\\phi_5$ is the empirical reliability map fitted on held-out validation data.
+  </Step>
+</Steps>
+
+## Why this shape
+
+Three properties of the composition rule are worth justifying explicitly, because each was chosen against a plausible alternative.
+
+### Veto over weighting
+
+Hardening streams could have been folded into the weighted aggregate as additional signals. They are not. A compromised audit chain or a confirmed Curveball-style adversarial input must drop confidence to zero, not merely reduce it. Allowing those streams to be "outvoted" by high core confidence would defeat the purpose of having them.
+
+### Abstention over forced classification
+
+When core streams disagree past threshold, the framework returns abstention rather than averaging through the disagreement. This trades coverage for calibration. In high-stakes deployments, that trade is correct: a system that declines to answer 5% of the time is more useful than one that answers everything with 80% confidence regardless of evidence quality.
+
+### Post-hoc calibration over Bayesian fusion
+
+Calibration is applied as a post-hoc map ($\\phi_5$) rather than baked into the aggregation rule. This decouples the *fusion* problem from the *reliability* problem. Fusion logic can be reasoned about in isolation; calibration can be re-fitted on new validation data without redesigning the composition.
+
+## Soundness sketch
+
+A more complete soundness argument is given in [Completeness proof](/architecture/completeness-proof). The intuition:
+
+1. The veto check is sound because it is monotone &mdash; adding more hardening signals can only *raise* the rate at which veto fires, not lower it.
+2. The weighted aggregate is calibrated because $\\phi_5$ is fitted on the empirical reliability of $C$ on held-out data, then validated under cross-validation.
+3. The abstention rule is conservative: it never produces a confidence value when the underlying evidence is contradictory beyond threshold.
+
+Together these give the formal guarantee that a reported $C_{\\text{final}}$ is either accompanied by an audit-verified evidence chain *or* the framework returned abort/abstain instead.
+
+## Worked example
+
+Consider a decision where:
+- Streams 1&ndash;5 produce $(0.91, 0.88, 0.84, 0.79, 0.86)$ with equal weights.
+- All hardening streams pass (no veto).
+- No abstention triggered.
+
+The raw aggregate is:
+
+$$
+C = \\frac{0.91 + 0.88 + 0.84 + 0.79 + 0.86}{5} = 0.856
+$$
+
+After calibration ($\\phi_5$ on held-out data shows that raw 0.856 corresponds to empirical correctness of approximately 0.83):
+
+$$
+C_{\\text{final}} \\approx 0.83
+$$
+
+The reported confidence is *lower* than the raw aggregate. This is the framework working as intended &mdash; raw aggregates are systematically overconfident, and calibration corrects for it.

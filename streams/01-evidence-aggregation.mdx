@@ -1,0 +1,49 @@
+---
+title: "Stream 1: Evidence aggregation"
+description: "Uncertainty-aware fusion of model outputs, retrieval signals, and structured priors."
+---
+
+## Purpose
+
+Stream 1 is the entry point of the core scoring pipeline. It takes heterogeneous evidence &mdash; model logits, retrieval scores, structured priors, policy checks, and any caller-supplied features &mdash; and reduces them to a single normalized contribution.
+
+The defining choice in this stream is *how* the reduction is done. Naive averaging and naive Bayes both produce systematically overconfident aggregates when source quality varies. Stream 1 instead applies an **uncertainty-aware fusion** that down-weights low-quality signals before combination.
+
+## What the stream does
+
+<Steps>
+  <Step title="Normalize each evidence source">
+    Inputs of different types (probabilities, scores, booleans, priors) are mapped to a common $[0, 1]$ scale with documented conversion rules.
+  </Step>
+  <Step title="Estimate per-source quality">
+    Each source is associated with a quality estimate &mdash; either a fixed prior from configuration or a runtime-derived estimate (e.g. retrieval consensus, model entropy).
+  </Step>
+  <Step title="Fuse with quality-weighted aggregation">
+    The fused contribution is the quality-weighted aggregate of the normalized sources, producing the stream's $c_1$ output.
+  </Step>
+  <Step title="Mark abstention if no usable evidence">
+    If every source is missing, untrusted, or out-of-range, the stream sets its abstention indicator $a_1 = 1$ and contributes nothing to the aggregate.
+  </Step>
+</Steps>
+
+## Why not Dempster-Shafer or Bayesian fusion
+
+The framework has been benchmarked head-to-head against both Dempster-Shafer and Naive Bayes; results are reported in [Head-to-head comparison](/validation/head-to-head-comparison). Both alternatives are mathematically appealing but produce overconfident aggregates under realistic source-correlation conditions.
+
+Stream 1 trades that mathematical elegance for an aggregator that is well-calibrated under correlated sources, validated empirically rather than asserted axiomatically.
+
+## Configuration surface
+
+Operators can adjust:
+
+- **Per-source quality priors** &mdash; fixed values used when runtime estimates are unavailable.
+- **Normalization rules** &mdash; how non-probability inputs (booleans, raw scores) are mapped into $[0, 1]$.
+- **Abstention threshold** &mdash; how much usable evidence is required before the stream is willing to contribute at all.
+
+See [Hyperparameters](/api/hyperparameters) for the configurable surface and recommended defaults.
+
+## What this stream does *not* do
+
+- **It does not interpret the prediction.** Stream 1 scores evidence quality, not the semantic content of the prediction.
+- **It does not detect adversarial inputs.** That is the job of [Stream 6](/streams/06-sis-curveball-detection).
+- **It does not produce the final calibrated score.** That is the job of [Stream 5](/streams/05-calibration), applied after the full composition.

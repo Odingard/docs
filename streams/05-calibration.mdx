@@ -1,0 +1,56 @@
+---
+title: "Stream 5: Calibration"
+description: "Post-hoc reliability correction so reported confidence matches empirical correctness."
+---
+
+## Purpose
+
+A confidence score of 0.9 must mean the system would be correct approximately 90% of the time on inputs that produce that score. If it does not, every downstream gate, escalation rule, and audit threshold is built on a false premise.
+
+Stream 5 enforces this property as a final step in the composition pipeline. It applies an empirical reliability map &mdash; fitted on held-out validation data &mdash; to the aggregated raw confidence, producing a calibrated final value.
+
+## What the stream does
+
+<Steps>
+  <Step title="Take raw aggregated confidence">
+    The output of Streams 1&ndash;4, post-aggregation, is a raw confidence value. This value is **not** the final reported confidence.
+  </Step>
+  <Step title="Apply the empirical reliability map">
+    A function $\\phi_5: [0, 1] \\to [0, 1]$ &mdash; fitted on held-out validation data &mdash; maps raw confidence to expected empirical correctness.
+  </Step>
+  <Step title="Return the calibrated value">
+    $C_{\\text{final}} = \\phi_5(C_{\\text{raw}})$ becomes the framework's reported confidence.
+  </Step>
+</Steps>
+
+## How $\\phi_5$ is fitted
+
+The reliability map is built from labeled validation data using isotonic regression or an equivalent monotone-fitting method. Two properties are enforced:
+
+1. **Monotonicity.** $\\phi_5$ is non-decreasing. Higher raw confidence cannot map to lower calibrated confidence.
+2. **Reliability.** On the held-out fitting data, $E[\\text{correct} \\mid \\phi_5(C_{\\text{raw}}) = p] \\approx p$ within tolerance.
+
+The empirical reliability of the fitted map is reported in [Calibration curves](/validation/calibration-curves), along with the head-to-head comparison against uncalibrated and naively-calibrated baselines.
+
+## Reliability results
+
+The framework's calibration achieves substantially better reliability than averaging baselines. The headline metric &mdash; reliability error (REL) &mdash; is reported in detail in [Calibration curves](/validation/calibration-curves) along with the methodology, dataset, and confidence bounds.
+
+## When to refit $\\phi_5$
+
+The map should be refitted whenever any of the following changes:
+
+- The upstream model stack (different model, different prompt, different retrieval index).
+- The deployment domain (the input distribution has shifted).
+- The configured weights or thresholds in any other stream.
+
+Refitting is a routine operation; the framework provides a fitting utility that takes labeled validation data and emits a new $\\phi_5$ for deployment.
+
+<Warning>
+  Calibration is a **distribution-bound** guarantee. Out-of-distribution inputs may produce systematically miscalibrated outputs even after $\\phi_5$ is applied. Detection of out-of-distribution conditions is the job of Streams 2 and 4, not Stream 5.
+</Warning>
+
+## What this stream does *not* do
+
+- **It does not improve the underlying decision.** Calibration corrects *how confident the system reports being*, not which decision it would have made.
+- **It does not extrapolate.** $\\phi_5$ is a fitted map; it does not generalize beyond its support without explicit refitting on representative data.

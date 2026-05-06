@@ -1,0 +1,75 @@
+---
+title: "Completeness proof"
+description: "Formal argument that the eight streams cover the failure modes the framework targets."
+---
+
+<Note>
+  The full formal treatment is in **Paper 3: Unified Architecture**. This page summarizes the result and points to the relevant sections.
+</Note>
+
+## What "completeness" means here
+
+VERDICT WEIGHT does not claim to cover every conceivable failure mode of every conceivable AI system. It claims that for the **target threat surface** &mdash; autonomous decisioning under adversarial conditions in high-stakes deployments &mdash; the eight streams collectively cover the failure classes documented below, and that no smaller subset of the streams retains that coverage.
+
+The proof has two parts:
+
+1. **Coverage:** every failure class in the target taxonomy is detected, suppressed, or surfaced by at least one stream.
+2. **Necessity:** removing any one stream leaves at least one failure class undetected. This is what the [ablation studies](/validation/ablation-studies) measure empirically.
+
+## Failure taxonomy
+
+| # | Failure class | Mitigated by |
+|---|---|---|
+| F1 | Miscalibrated model confidence | Streams 1, 5 |
+| F2 | Source-correlation collapse (naive Bayes failure) | Stream 4 |
+| F3 | Aleatoric / epistemic conflation | Stream 2 |
+| F4 | Confidence drift on semantically equivalent inputs | Stream 3 |
+| F5 | Confidence-flip adversarial input (Curveball class) | Stream 6 |
+| F6 | Tampering with historical decisions | Stream 7 |
+| F7 | Compromise of the scoring layer itself | Stream 8 |
+| F8 | Forced classification under contradictory evidence | Composition rule (abstention) |
+
+## Coverage argument
+
+For each failure class above, the corresponding stream(s) produce a signal that:
+
+1. **Lowers the composed confidence** (F1&ndash;F4), or
+2. **Triggers abstention** (F8), or
+3. **Triggers veto / abort** (F5&ndash;F7).
+
+The composition rule (see [Eight-stream composition](/architecture/eight-stream-composition)) routes each signal class to its appropriate downstream effect. The veto path dominates the aggregate path, which dominates the abstention path. This priority ordering is what closes the coverage argument: no failure class survives all three checks.
+
+## Necessity argument
+
+Necessity is established empirically through ablation. For each stream $i$, we measure the change in detection rate of failure classes when $i$ is removed:
+
+- Removing **Stream 1** degrades F1 detection (raw scores re-enter the aggregate uncorrected).
+- Removing **Stream 2** collapses F3 detection (no aleatoric/epistemic split).
+- Removing **Stream 3** silently re-admits F4 (drift becomes invisible).
+- Removing **Stream 4** re-introduces F2 (correlated sources count as independent).
+- Removing **Stream 5** flatly removes the calibration map; raw aggregates are systematically overconfident.
+- Removing **Stream 6** re-admits F5 (the Curveball attack class becomes undetectable).
+- Removing **Stream 7** removes audit-chain integrity (F6 becomes silent).
+- Removing **Stream 8** removes the registry kill switch (F7 cannot be enforced).
+
+The full ablation table with effect sizes and Bonferroni-corrected significance is reported in [Ablation studies](/validation/ablation-studies).
+
+## Bounds and caveats
+
+The completeness claim is bounded in three important ways:
+
+<Warning>
+  **Threat-model dependence.** Completeness is asserted relative to the failure taxonomy above. A deployment whose threat model includes failure classes outside that taxonomy will need additional layers. The framework does not silently expand its coverage claim.
+</Warning>
+
+<Warning>
+  **No security-against-adaptive-adversary claim.** Stream 6 raises the cost of the Curveball attack class. It does not claim provable security against an adaptive adversary with full white-box knowledge of the framework. We document what *is* claimed in [Curveball attack class](/gov/curveball-attack-class).
+</Warning>
+
+<Warning>
+  **Calibration is empirical.** The reliability guarantee from Stream 5 holds in distribution. Out-of-distribution inputs are detected by Stream 2 (epistemic uncertainty) and Stream 4 (cross-source coherence), but the calibration map itself does not extrapolate.
+</Warning>
+
+## Where this is published
+
+The completeness proof, the formal composition rule, and the necessity / ablation results are written up in **Paper 3: Unified Architecture**. See [Papers](/papers/paper-3-architecture) for the abstract and pre-print link.

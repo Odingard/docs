@@ -1,0 +1,80 @@
+---
+title: "Verifying your install"
+description: "Confirm the installed package matches the audited release."
+---
+
+## Why verify
+
+VERDICT WEIGHT is intended for environments where the integrity of the decision-scoring layer itself is part of the threat model. A compromised build of the framework would silently undermine every downstream guarantee. Verification is therefore a first-class operational step, not an optional one.
+
+## Three independent integrity sources
+
+VERDICT WEIGHT is published in three independent locations:
+
+| Source | Purpose |
+|---|---|
+| [PyPI](https://pypi.org/project/verdict-weight/) | Standard distribution channel for end users. |
+| [GitHub `Odingard/verdict-weight`](https://github.com/Odingard/verdict-weight) | Source of truth for code, history, and signed tags. |
+| [Zenodo (DOI: 10.5281/zenodo.19447547)](https://doi.org/10.5281/zenodo.19447547) | Immutable archival snapshot for academic citation and audit. |
+
+All three should agree byte-for-byte on the source tree of any given release. Disagreement is a signal that something is wrong.
+
+## Cross-source hash check
+
+```bash
+# Compute SHA-256 of the PyPI sdist.
+python -m pip download verdict-weight==X.Y.Z --no-deps --no-binary :all: --dest ./pypi
+sha256sum ./pypi/verdict_weight-X.Y.Z.tar.gz
+
+# Compute SHA-256 of the GitHub release tarball.
+curl -L https://github.com/Odingard/verdict-weight/archive/refs/tags/vX.Y.Z.tar.gz -o gh.tar.gz
+sha256sum gh.tar.gz
+
+# Compute SHA-256 of the Zenodo archive.
+# Download URL is provided on the Zenodo record page.
+sha256sum zenodo-archive.zip
+```
+
+Compare against the values published in the release notes for that version. Any mismatch should block deployment pending investigation.
+
+## Runtime self-check
+
+After install, the package can verify its own structural integrity:
+
+```python
+from verdict_weight import self_check
+
+report = self_check()
+print(report.version)
+print(report.streams_loaded)   # should be 8
+print(report.tests_baseline)   # should be 673
+print(report.is_healthy)       # boolean
+```
+
+A `False` value on `is_healthy` should be treated as a deployment-blocking event.
+
+## Reproducible test run
+
+The test suite is deterministic and should produce identical results on any machine running a verified build:
+
+```bash
+pytest -q --tb=no
+```
+
+Expected output ends with: `673 passed in [time]`. Any deviation &mdash; failed tests, missing tests, additional tests &mdash; warrants investigation before the build is promoted.
+
+<Warning>
+  Do **not** run with environment-dependent skip markers in production verification. The self-check assumes the full suite executed.
+</Warning>
+
+## Provenance for regulated environments
+
+For audit-bound deployments, the recommended provenance bundle consists of:
+
+1. The exact PyPI version string (`verdict-weight==X.Y.Z`).
+2. The matching Git tag and commit SHA from `Odingard/verdict-weight`.
+3. The Zenodo archive DOI for that release.
+4. A locally-recorded `self_check()` report at install time.
+5. A locally-recorded `pytest` log showing 673/673 passing.
+
+This bundle is sufficient for a third-party auditor to reproduce the deployed artifact from public sources.

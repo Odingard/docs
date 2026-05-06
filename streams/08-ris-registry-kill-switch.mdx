@@ -1,0 +1,69 @@
+---
+title: "Stream 8: RIS / registry kill switch"
+description: "Binary, registry-level abort condition. Last line of defense against scoring-layer compromise."
+---
+
+## Purpose
+
+Stream 8 &mdash; **RIS (Registry Integrity Stream)** &mdash; is the framework's last line of defense. It is a binary kill switch: when raised, every subsequent scoring call returns *abort* with confidence zero, regardless of what any other stream would have reported.
+
+The kill switch exists because some failures cannot be safely *scored around*. A compromised audit chain, a tampered configuration, or a detection event in Stream 6 that an operator has not yet acknowledged are all conditions where continuing to produce confidence values would actively mislead downstream systems. The right operational behavior in those conditions is *refuse to answer* until a human re-establishes the integrity baseline.
+
+## What raises the kill switch
+
+| Condition | Source |
+|---|---|
+| Audit chain verification failure | [Stream 7](/streams/07-cps-hash-chain-integrity) |
+| Stream 6 Curveball detection above sustained-event threshold | [Stream 6](/streams/06-sis-curveball-detection) |
+| Configuration registry hash mismatch | RIS itself |
+| Self-check failure on framework integrity | [Verification](/install/verification) |
+| Explicit operator command | Operator API |
+
+The kill switch is designed to be raised easily and lowered with deliberate effort. The asymmetry is intentional.
+
+## What "binary" means here
+
+Other streams contribute graded signals. Stream 8 does not. It produces a single bit. That bit either is set or it is not. The framework's behavior is determined entirely by that bit:
+
+<CodeGroup>
+```python python
+if registry.kill_switch_raised:
+    return ScoreResult(
+        confidence=0.0,
+        should_act=False,
+        outcome="abort",
+        reason=registry.kill_reason,
+    )
+```
+</CodeGroup>
+
+There is no "partially raised" state. There is no override flag accessible to a caller. There is no "ignore for this call" path. These are deliberate omissions.
+
+## Why a registry, not a flag
+
+The kill switch is anchored in a **configuration registry** &mdash; a structured, versioned, hash-protected record of the deployment's intended state. The registry is what allows the kill switch to be more than a mutable boolean:
+
+- The registry's current hash is computed at framework startup.
+- That hash is recorded in the audit chain.
+- A tampered registry produces a different hash and trips the kill switch on the next scoring call.
+
+This means an attacker who modifies the kill-switch flag in memory does not get to silently re-enable scoring &mdash; the hash mismatch raises the switch again immediately.
+
+## Lowering the kill switch
+
+Lowering the kill switch is a deliberate, documented operator action. It requires:
+
+1. Identifying the trigger condition that raised it.
+2. Resolving that condition (re-loading from a clean audit chain, rotating credentials, replacing a compromised configuration).
+3. Re-running the framework self-check ([Verification](/install/verification)).
+4. Issuing an explicit `lower` command, which is itself recorded in the audit chain.
+
+This procedure is intentionally manual. There is no automated recovery path.
+
+## Why this is in the framework rather than the operator's runbook
+
+A kill switch maintained by operator runbook is a kill switch that fails to fire on the worst day of the deployment. By embedding the abort behavior into the scoring layer itself, with veto power over the composition, the framework makes the safe failure mode the *default* behavior &mdash; not the behavior that depends on someone reading documentation under pressure.
+
+<Note>
+  This is the same design philosophy that produces hardware kill switches in physical systems: the safe state should require *active* maintenance, not active discipline.
+</Note>

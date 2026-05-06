@@ -1,0 +1,47 @@
+---
+title: "Stream 2: Uncertainty quantification"
+description: "Decomposing total uncertainty into aleatoric and epistemic components."
+---
+
+## Purpose
+
+A confidence score that does not distinguish *what the system cannot know* from *what is inherently noisy* is operationally useless. Stream 2 performs that decomposition.
+
+- **Aleatoric uncertainty** &mdash; irreducible noise in the input itself. More data does not help.
+- **Epistemic uncertainty** &mdash; gaps in what the model has learned. More data, or different data, would help.
+
+A high aleatoric reading means the input itself is ambiguous; the system should not be confident, and no amount of evidence-gathering will change that. A high epistemic reading means the input is outside the model's reliable operating envelope; the system should escalate to human review or to a more capable model.
+
+## What the stream does
+
+<Steps>
+  <Step title="Estimate total uncertainty">
+    From the upstream evidence (entropy of model logits, retrieval-set diversity, source disagreement), produce a total uncertainty estimate.
+  </Step>
+  <Step title="Decompose into aleatoric and epistemic components">
+    Apply the variance-decomposition rule to split total uncertainty into the two components.
+  </Step>
+  <Step title="Penalize the contribution accordingly">
+    Both components reduce the stream's confidence contribution $c_2$, but they reduce it through different mechanisms.
+  </Step>
+  <Step title="Surface the decomposition in the audit record">
+    The aleatoric / epistemic split is recorded for downstream review, not just folded silently into the score.
+  </Step>
+</Steps>
+
+## Why both components matter
+
+Conflating the two components is the most common reason calibration fails out-of-distribution. A model trained on in-distribution data can be perfectly calibrated *in distribution* and catastrophically miscalibrated *out of distribution* &mdash; precisely because epistemic uncertainty was never measured.
+
+Stream 2's decomposition is what allows the framework to surface "I don't know what I don't know" as a first-class output, rather than papering over it with a single conflated number.
+
+## Interaction with other streams
+
+- Stream 2's epistemic estimate feeds Stream 4 ([cross-source coherence](/streams/04-cross-source-coherence)) as a reliability signal.
+- Stream 2's total uncertainty feeds Stream 5 ([calibration](/streams/05-calibration)) as an input to the reliability map.
+- A high epistemic reading can independently trigger abstention if it crosses the configured threshold.
+
+## What this stream does *not* do
+
+- **It does not detect adversarial inputs.** Adversarial inputs are designed to *minimize* observable uncertainty &mdash; that is what makes them adversarial. Detection is the job of [Stream 6](/streams/06-sis-curveball-detection).
+- **It does not provide a Bayesian posterior.** The decomposition is variance-based, not posterior-based, by design &mdash; it does not require a tractable posterior over model weights.

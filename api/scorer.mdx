@@ -1,0 +1,101 @@
+---
+title: "Scorer"
+description: "The primary entry point for single-decision confidence scoring."
+---
+
+## Overview
+
+`Scorer` is the canonical entry point for scoring a single decision. It composes all eight streams, returns a calibrated confidence score, and writes the scoring event to the audit chain.
+
+```python
+from verdict_weight import Scorer
+
+scorer = Scorer()
+result = scorer.score(prediction=..., evidence={...})
+```
+
+## Constructor
+
+```python
+Scorer(
+    config: ScorerConfig | None = None,
+    audit_log_path: str | Path | None = None,
+)
+```
+
+| Parameter | Type | Description |
+|---|---|---|
+| `config` | `ScorerConfig` | Optional configuration object. If omitted, conservative defaults are used. See [Hyperparameters](/api/hyperparameters). |
+| `audit_log_path` | `str` or `Path` | Path to the audit chain log file. If omitted, an in-memory chain is used (not recommended for production). |
+
+## `score`
+
+The primary scoring method.
+
+```python
+result = scorer.score(
+    prediction,
+    evidence: dict,
+    *,
+    context: dict | None = None,
+)
+```
+
+| Parameter | Type | Description |
+|---|---|---|
+| `prediction` | any | The decision being scored. The framework is prediction-type-agnostic; treat this as an opaque label for audit purposes. |
+| `evidence` | `dict` | The evidence payload. Keys are source identifiers; values are the evidence values. See [Evidence aggregation](/streams/01-evidence-aggregation) for accepted types. |
+| `context` | `dict` | Optional caller-supplied context (request id, user id, etc.). Recorded in the audit chain; not used for scoring. |
+
+### Returns: `ScoreResult`
+
+| Field | Type | Description |
+|---|---|---|
+| `confidence` | `float` | Calibrated confidence in `[0, 1]`. |
+| `should_act` | `bool` | Gate decision against the configured threshold. |
+| `outcome` | `str` | One of `"score"`, `"abstain"`, `"abort"`. |
+| `stream_breakdown` | `dict[str, StreamContribution]` | Per-stream contributions. |
+| `audit_id` | `str` | Hash-chain identifier for this event. |
+| `reason` | `str` &#124; `None` | Populated on `abstain` or `abort` outcomes. |
+
+## `outcome` values
+
+<CardGroup cols={3}>
+  <Card title="score" icon="circle-check">
+    Normal output. `confidence` is meaningful and `should_act` is set.
+  </Card>
+  <Card title="abstain" icon="circle-pause">
+    The framework declined to produce a confidence value. Evidence was contradictory or insufficient.
+  </Card>
+  <Card title="abort" icon="circle-xmark">
+    A hardening stream raised a veto. Confidence is forced to zero and `reason` identifies the trigger.
+  </Card>
+</CardGroup>
+
+## Example: handling all three outcomes
+
+```python
+result = scorer.score(prediction, evidence)
+
+match result.outcome:
+    case "score":
+        if result.should_act:
+            execute(prediction)
+        else:
+            escalate_to_review(prediction, result)
+    case "abstain":
+        log_abstention(result.reason)
+        escalate_to_review(prediction, result)
+    case "abort":
+        log_security_event(result.reason)
+        # Do NOT continue to other scorers - investigate first.
+        raise FrameworkAbort(result.reason)
+```
+
+<Warning>
+  An `"abort"` outcome means a hardening stream detected a condition where the scoring layer itself may be compromised. Do not silently retry. Do not switch to a different scorer instance and continue. Investigate per your incident response plan.
+</Warning>
+
+## Thread safety
+
+Each `Scorer` instance is intended to be used from a single thread or an async event loop. For concurrent scoring, instantiate one scorer per worker and configure them to share an audit log path with appropriate file locking, or run them with separate logs that are reconciled offline. See [Pipeline](/api/pipeline) for the supported concurrency patterns.

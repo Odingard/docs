@@ -1,0 +1,42 @@
+---
+title: "Stream 3: Temporal stability"
+description: "Penalizes confidence that fluctuates across semantically equivalent inputs."
+---
+
+## Purpose
+
+Modern model outputs are unstable. Re-phrasing a prompt, re-ordering retrieved context, or sampling at a different temperature can flip the model's confidence dramatically &mdash; even when the underlying decision should not change.
+
+Stream 3 measures that instability and penalizes it. The framework's position is that *if confidence depends on the order in which evidence was presented, the confidence is not real*.
+
+## What the stream does
+
+<Steps>
+  <Step title="Generate semantically equivalent perturbations">
+    Either at scoring time or via cached precomputed variants, the framework evaluates the same decision under a small number of equivalent input formulations.
+  </Step>
+  <Step title="Measure confidence variance across variants">
+    The variance (or a robust analog) of the confidence values across variants quantifies temporal instability.
+  </Step>
+  <Step title="Discount the contribution proportionally">
+    A high variance reduces $c_3$. Confidence that the system cannot reproduce on equivalent inputs is not allowed to count toward the aggregate.
+  </Step>
+</Steps>
+
+## Why this matters in practice
+
+The most insidious failure mode of LLM-based decisioning is *plausible volatility*: the system reports 0.9 confidence on one phrasing and 0.4 on a paraphrase, with neither answer obviously wrong. Without Stream 3, both readings get folded into downstream pipelines as if they were the same kind of signal. They are not. One of them is, by definition, miscalibrated.
+
+This stream is also what makes the framework robust to **prompt-ordering attacks** &mdash; adversarial reformulations that are not strong enough to flip the prediction but are strong enough to inflate confidence. Those attacks raise variance across variants, which the stream catches.
+
+## Configuration surface
+
+- **Number of perturbations** &mdash; the trade-off between scoring latency and stability resolution.
+- **Perturbation strategy** &mdash; paraphrase, reorder, resample, or a combination.
+- **Variance threshold for abstention** &mdash; if variance is high enough, the stream can drive abstention rather than merely discount.
+
+See [Hyperparameters](/api/hyperparameters) for defaults and tuning guidance.
+
+## Cost considerations
+
+Stream 3 is the most computationally expensive of the core streams because it requires re-evaluating evidence under multiple input formulations. In latency-sensitive deployments, the perturbation count can be reduced; in audit-heavy deployments it should be raised. The framework provides a deterministic toggle to disable Stream 3 when its cost is unacceptable, with the corresponding loss of failure-class coverage documented in the audit record.

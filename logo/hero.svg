@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" width="800" height="200">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F4C3A"/>
+      <stop offset="100%" stop-color="#10B981"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="200" fill="none"/>
+  <g transform="translate(80, 50)">
+    <rect width="100" height="100" rx="16" fill="url(#g)"/>
+    <path d="M28 38 L50 78 L72 38" stroke="#FFFFFF" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="220" y="115" font-family="Inter, system-ui, sans-serif" font-weight="800" font-size="56" fill="#0F4C3A" letter-spacing="2">VERDICT WEIGHT</text>
+  <text x="222" y="150" font-family="Inter, system-ui, sans-serif" font-weight="500" font-size="18" fill="#475569" letter-spacing="1">Confidence scoring for autonomous AI</text>
+</svg>

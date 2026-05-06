@@ -1,0 +1,73 @@
+---
+title: "Formal verification"
+description: "Property-based and constraint-solver checks of the composition rule and audit-chain invariants."
+---
+
+## What is verified formally
+
+The framework includes a formal-verification suite that checks invariants by exhaustive (or symbolically exhaustive) enumeration rather than by sampled testing. The properties verified formally are those whose correctness is most consequential for the framework's claims:
+
+| Property | Verified by |
+|---|---|
+| Veto priority: any hardening-stream veto forces composed confidence to zero | Property-based + symbolic enumeration |
+| Abstention monotonicity: more abstaining streams cannot reduce abstention rate | Property-based |
+| Audit-chain continuity: every record's hash matches its successor's predecessor hash | Property-based |
+| Calibration map monotonicity: higher raw confidence cannot map to lower calibrated confidence | Property-based |
+| Registry hash equivalence: identical registries produce identical hashes | Property-based |
+| Composition determinism: identical inputs and identical configuration produce identical outputs | Property-based |
+
+These are the properties most directly tied to the framework's published guarantees.
+
+## Methods used
+
+<CardGroup cols={2}>
+  <Card title="Property-based testing" icon="square-check">
+    Hypothesized properties checked across automatically-generated input families. Uses Hypothesis-style test generators with extensive shrinking on counterexample.
+  </Card>
+  <Card title="Constraint-solver enumeration" icon="diagram-project">
+    For properties over finite or finite-symbolic domains, an SMT-style solver enumerates the input space looking for a violating assignment.
+  </Card>
+</CardGroup>
+
+The two methods are deployed where each is most appropriate. Property-based testing handles dense domains (real-valued confidences). Constraint-solver enumeration handles discrete-state properties (veto priority, abstention rules).
+
+## What "formal" means here
+
+The framework's use of "formal verification" is precise:
+
+- It refers to verification of *specific*, *enumerated* properties on the production code.
+- It does *not* refer to a top-to-bottom formal model of the entire system in a proof assistant. That would be a different and much larger project.
+- It does *not* claim that "the framework is correct." It claims that *the enumerated properties hold under the conditions verified*.
+
+This is the standard usage in industrial software verification and matches the rigor expected for IEEE-grade peer review.
+
+## Composition rule
+
+The composition rule (see [Eight-stream composition](/architecture/eight-stream-composition)) is the most heavily verified component because it is where most of the framework's correctness rests:
+
+- Veto priority is verified symbolically across the full discrete state space of `(v_6, v_7, v_8) \\in \\{0, 1\\}^3` paired with arbitrary core-stream contributions.
+- Abstention threshold logic is verified by exhaustive enumeration over the abstention-indicator vector.
+- Calibration application monotonicity is verified by property-based testing on the fitted reliability map.
+
+## Audit-chain invariants
+
+The audit-chain integrity properties are verified by:
+
+- Constructing arbitrary chains of arbitrary lengths.
+- Confirming that any modification to any record causes verification to fail.
+- Confirming that legitimate appends do not cause verification to fail.
+- Confirming that checkpoint rotation preserves verification across chain boundaries.
+
+## Where the formal-verification suite lives
+
+The suite is in `tests/formal/` in the public repository. It runs as part of CI on every commit and is subject to the same pass-rate requirement as the rest of the suite (100%, no exceptions).
+
+## What this enables
+
+The combination of:
+
+- 673 unit tests across 27 suites,
+- Fuzz and mutation testing,
+- Formal verification of the most consequential properties,
+
+is what allows the framework to make its integrity claims with the rigor expected of a peer-reviewed publication. The full hardening apparatus &mdash; including the seven IEEE reviewer attack categories addressed before submission &mdash; is summarized in [Head-to-head comparison](/validation/head-to-head-comparison).

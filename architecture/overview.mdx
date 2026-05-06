@@ -1,0 +1,80 @@
+---
+title: "Architecture overview"
+description: "How the eight streams compose into a single defensible confidence score."
+---
+
+## Design principles
+
+VERDICT WEIGHT is built on five design principles, in priority order:
+
+<Steps>
+  <Step title="Composition over monolith">
+    Each stream is independently testable, independently replaceable, and produces an interpretable signal. The composed score is a function of those signals, not a black box trained over them.
+  </Step>
+  <Step title="Calibration over rank-order">
+    Confidence reported by the system must match correctness observed in the wild. A score of 0.9 must mean "right ~90% of the time."
+  </Step>
+  <Step title="Audit by default">
+    Every scoring event is hashed, chained, and reproducible. Audit is not a feature toggle.
+  </Step>
+  <Step title="Deterministic kill conditions">
+    Adversarial detection and integrity violations route to a binary, registry-level abort &mdash; not a soft warning.
+  </Step>
+  <Step title="No external runtime dependencies">
+    Scoring proceeds without contacting any external service. Suitable for air-gapped and classified environments.
+  </Step>
+</Steps>
+
+## The eight streams
+
+The framework is organized into two layers: **core scoring streams (1&ndash;5)** which produce the calibrated confidence value, and **hardening streams (6&ndash;8)** which protect that value against adversarial manipulation and tampering.
+
+<CardGroup cols={2}>
+  <Card title="Stream 1: Evidence aggregation" href="/streams/01-evidence-aggregation">
+    Uncertainty-aware fusion of model outputs, retrieval, and structured priors.
+  </Card>
+  <Card title="Stream 2: Uncertainty quantification" href="/streams/02-uncertainty-quantification">
+    Decomposition into aleatoric and epistemic components.
+  </Card>
+  <Card title="Stream 3: Temporal stability" href="/streams/03-temporal-stability">
+    Penalizes confidence drift across semantically equivalent inputs.
+  </Card>
+  <Card title="Stream 4: Cross-source coherence" href="/streams/04-cross-source-coherence">
+    Rewards corroboration across independent signal sources.
+  </Card>
+  <Card title="Stream 5: Calibration" href="/streams/05-calibration">
+    Post-hoc reliability correction.
+  </Card>
+  <Card title="Stream 6: SIS / Curveball detection" href="/streams/06-sis-curveball-detection">
+    Detects adversarial inputs designed to perturb confidence.
+  </Card>
+  <Card title="Stream 7: CPS / hash-chain integrity" href="/streams/07-cps-hash-chain-integrity">
+    Cryptographic provenance for every scoring event.
+  </Card>
+  <Card title="Stream 8: RIS / registry kill switch" href="/streams/08-ris-registry-kill-switch">
+    Binary abort on integrity compromise.
+  </Card>
+</CardGroup>
+
+## Composition
+
+The streams compose under a formal rule documented in [Eight-stream composition](/architecture/eight-stream-composition). Two properties of that rule are worth surfacing here:
+
+1. **Hardening streams have veto power.** A compromised audit chain (Stream 7) or a triggered kill switch (Stream 8) overrides the composed core score regardless of how high it would otherwise be.
+2. **Abstention is a first-class output.** When the core streams disagree past a configurable threshold, the framework returns abstention rather than a forced classification. Abstention is the right answer often enough that producing it is a feature, not a failure mode.
+
+## Computational profile
+
+| Layer | Complexity |
+|---|---|
+| Core streams (single decision) | O(1) |
+| Pipeline (K decisions) | O(K) |
+| Audit verification (chain length N) | O(N) |
+
+See [Complexity analysis](/validation/complexity-analysis) for the full derivation and empirical wall-clock measurements.
+
+## What the framework does *not* do
+
+- **It does not train a model.** VERDICT WEIGHT scores decisions produced by an upstream model stack you already control.
+- **It does not replace human review.** It produces a calibrated gate. The gate threshold is a policy decision; it is not the framework's job to decide what is "confident enough."
+- **It does not promise to detect every adversarial input.** Stream 6 raises the cost of a particular attack class (Curveball / confidence-flip). It does not claim universal robustness, and the [head-to-head comparison](/validation/head-to-head-comparison) is honest about what is and is not measured.

@@ -1,0 +1,45 @@
+---
+title: "Stream 4: Cross-source coherence"
+description: "Rewards corroboration across independent evidence sources; surfaces contradiction."
+---
+
+## Purpose
+
+Stream 4 is the framework's answer to a known failure mode of probabilistic fusion: **correlated sources counted as independent**. Naive Bayes assumes conditional independence; in real deployments that assumption is almost always violated, and the resulting posterior is overconfident in proportion to the violation.
+
+This stream measures coherence across sources directly and uses it as a *first-class signal*, rather than letting the aggregation rule paper over the correlation.
+
+## What the stream does
+
+<Steps>
+  <Step title="Identify the source set">
+    The relevant sources are the inputs to Stream 1 (model logits, retrieval, priors, policy checks) plus any caller-supplied independent signals.
+  </Step>
+  <Step title="Score pairwise coherence">
+    For each pair of sources, compute a coherence statistic: do they point at the same conclusion at compatible confidence levels?
+  </Step>
+  <Step title="Aggregate into a coherence score">
+    Combine pairwise coherence into a single value $\\kappa \\in [0, 1]$. Coherent corroboration produces $\\kappa$ near 1; flat-out contradiction produces $\\kappa$ near 0.
+  </Step>
+  <Step title="Translate to a contribution and (if needed) trigger abstention">
+    $c_4$ is computed from $\\kappa$. When $\\kappa$ falls below a configured threshold, the stream sets its abstention indicator and the composition rule may abstain on the entire decision.
+  </Step>
+</Steps>
+
+## Why corroboration is treated specifically
+
+It is tempting to roll cross-source agreement into the Stream 1 aggregator. The framework deliberately does not. Two reasons:
+
+1. **Independence of the signals.** Stream 1 does aggregation; Stream 4 does cross-source consistency checking. Folding them together makes it impossible to ablate one without disturbing the other.
+2. **Audit clarity.** When the framework returns abstain, operators need to know whether the cause was *missing evidence* (Stream 1's abstention path) or *contradictory evidence* (Stream 4's). Those have different operational responses.
+
+## Interaction with other streams
+
+- Stream 4 consumes the epistemic uncertainty estimate from [Stream 2](/streams/02-uncertainty-quantification) as a reliability prior on each source.
+- A low coherence score raises the empirical-correctness band that the calibration map ([Stream 5](/streams/05-calibration)) applies, since contradictory evidence is correlated with reduced reliability.
+
+## Failure modes Stream 4 specifically catches
+
+- **Echo chambers.** Multiple "sources" that all derive from the same upstream model are correlated; their agreement is uninformative. Stream 4 detects this.
+- **Stale priors.** A configured prior that disagrees with current evidence raises a coherence flag rather than being silently overridden.
+- **Latent retrieval failure.** When retrieval returns near-duplicate documents that all support the same answer, the apparent corroboration is illusory; coherence scoring catches the duplication.

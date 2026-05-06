@@ -1,0 +1,65 @@
+---
+title: "Stream 7: CPS / hash-chain integrity"
+description: "Cryptographic provenance for every scoring event. Tamper-evident audit by construction."
+---
+
+## Purpose
+
+Every confidence score VERDICT WEIGHT produces is a decision about how much trust to place in an AI system's output. In any deployment serious enough to need a confidence layer, those decisions themselves must be reviewable, reproducible, and tamper-evident.
+
+Stream 7 &mdash; **CPS (Cryptographic Provenance Stream)** &mdash; provides that property by construction. Every scoring event is hashed, chained to its predecessor, and signed. The audit log is structurally identical to a single-writer blockchain ledger: any modification to a historical record invalidates every record after it.
+
+## What the stream does
+
+<Steps>
+  <Step title="Hash the scoring event">
+    Each event &mdash; the input evidence, the per-stream contributions, the composed confidence, the timestamp &mdash; is canonicalized and hashed with a cryptographic hash function.
+  </Step>
+  <Step title="Chain the hash to the predecessor">
+    The new record's hash includes the predecessor record's hash. This produces the chain property: tampering with any past record invalidates the chain from that point forward.
+  </Step>
+  <Step title="Sign the chain head">
+    The current chain head can be signed with an operator-controlled key, anchoring the chain to an external trust root. Signing is optional but recommended for audit-bound deployments.
+  </Step>
+  <Step title="Verify on every load">
+    When the audit log is loaded for review or for continuation, the entire chain is verified end-to-end. A verification failure raises the registry kill switch ([Stream 8](/streams/08-ris-registry-kill-switch)) on the next scoring call.
+  </Step>
+</Steps>
+
+## The blockchain analogy
+
+The CPS chain is, in structure, a single-writer blockchain ledger. The same primitive that makes Bitcoin's transaction history tamper-evident makes a VERDICT WEIGHT audit log tamper-evident: a Merkle-style hash chain where every record's identity depends on every record before it.
+
+What Stream 7 does *not* do, and what distinguishes it from a blockchain in the popular sense:
+
+- **There is no consensus protocol.** The chain is single-writer. There is exactly one operator producing scoring events; no Byzantine agreement is required.
+- **There is no proof-of-work.** The integrity property comes from cryptographic hashing, not from computational expense.
+- **There is no token or distributed ledger.** The chain is local to the deployment; it can be replicated for backup, but is not a peer-to-peer object.
+
+Calling it a "blockchain" is technically accurate and intuitive shorthand. Calling it "cryptographic provenance" is more precise.
+
+## Operational properties
+
+| Property | How it is achieved |
+|---|---|
+| Tamper evidence | Hash chain over canonicalized events. |
+| Reproducibility | Canonical serialization; deterministic streams. |
+| Sign-and-anchor | Optional operator signing of the chain head. |
+| Long-horizon storage | Append-only log; no rewriting required. |
+| Verification cost | Linear in chain length. Can be parallelized for offline audit. |
+
+## When verification fails
+
+Verification failure is not a soft warning. The framework treats it as evidence that *the scoring layer itself has been compromised* &mdash; which is the threat model the chain exists to detect. On verification failure:
+
+1. The audit chain reports the first invalid record and the affected range.
+2. The next call to the scorer raises Stream 8's registry kill switch.
+3. The framework refuses to produce further scores until an operator-driven recovery procedure is run.
+
+See [Stream 8](/streams/08-ris-registry-kill-switch) for the kill-switch behavior in detail.
+
+## Storage and rotation
+
+The audit log is append-only. For long-running deployments, the framework supports periodic chain *checkpointing* &mdash; cutting a new chain rooted in a signed checkpoint of the prior one &mdash; to keep verification cost bounded while preserving a continuous trust path.
+
+Checkpoint rotation is documented in [Audit logging](/api/audit-logging).

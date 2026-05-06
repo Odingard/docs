@@ -1,0 +1,56 @@
+---
+title: "Stream 6: SIS / Curveball detection"
+description: "Detects adversarial inputs designed to manipulate confidence without flipping the prediction."
+---
+
+## The Curveball attack class
+
+A standard adversarial attack tries to flip a model's prediction. A *Curveball* attack tries something subtler and, in autonomous deployments, more dangerous: it flips the model's **confidence** while leaving the prediction intact.
+
+The threat is straightforward. If an autonomous system gates its actions on confidence, an attacker who can drive confidence above the action threshold &mdash; without changing the predicted class &mdash; can induce the system to take an action the operator never authorized. Conversely, an attacker who can drive confidence *down* below the threshold can induce silent abstention, freezing a system that should have acted.
+
+Curveball attacks are not theoretical. They are the obvious next step once confidence-gated autonomy becomes the deployment norm.
+
+## Stream 6 — SIS (Stability Integrity Signal)
+
+Stream 6 is the framework's defense against this class. It runs in parallel with the core scoring streams and produces a binary veto signal $v_6$ that, when raised, drives the composed confidence to zero and routes the decision to abort.
+
+## What the stream does
+
+<Steps>
+  <Step title="Compute a stability fingerprint of the input">
+    The input is examined under perturbations specifically constructed to expose Curveball-style manipulation &mdash; perturbations that should change observable confidence in predictable ways for benign inputs and in *anomalous* ways for adversarial ones.
+  </Step>
+  <Step title="Compare against the expected fingerprint band">
+    The fingerprint is compared to the expected band derived from in-distribution validation data. Out-of-band fingerprints indicate the input is exhibiting non-natural confidence dynamics.
+  </Step>
+  <Step title="Raise the veto if the deviation is significant">
+    A configurable significance threshold determines when the deviation is large enough to raise $v_6 = 1$. The threshold is set conservatively by default; operators can tighten or loosen based on their tolerance for false positives versus false negatives.
+  </Step>
+  <Step title="Record the detection in the audit chain">
+    Even a non-triggering Stream 6 evaluation is recorded in the audit log with its fingerprint and significance score. This makes after-the-fact attack pattern analysis possible.
+  </Step>
+</Steps>
+
+## Why this is in the framework rather than upstream
+
+Curveball detection could in principle live in the model, in the inference server, or in a dedicated adversarial-input filter upstream of decisioning. The framework's position is that it must live *adjacent to confidence scoring* for two reasons:
+
+1. **The signal it acts on is confidence dynamics.** That is precisely what the framework is computing. Doing detection here removes the round-trip and the opportunity for inconsistency.
+2. **The veto must be authoritative.** A detection in an upstream filter is advisory; a Stream 6 veto in the framework is binding through the composition rule. The cost of a missed Curveball detection is operationally severe; the framework treats it as such.
+
+## What is and is not claimed
+
+<Warning>
+  Stream 6 raises the cost of the Curveball attack class. It does **not** claim provable security against an adaptive adversary with full white-box knowledge of the framework, the fingerprinting strategy, and the validation distribution. An attacker who knows the fingerprint band can in principle craft inputs that stay inside it.
+</Warning>
+
+What *is* claimed:
+
+- Stream 6 detects naive Curveball attacks at high rates with low false-positive rates. The empirical numbers are in [Curveball attack class](/gov/curveball-attack-class).
+- Stream 6 detects adaptive Curveball attacks at meaningfully elevated cost (the attacker must do measurably more work to evade detection).
+- Removing Stream 6 from the composition empirically re-admits the attack class entirely. This is shown in [Ablation studies](/validation/ablation-studies).
+
+## Why this is the government-positioning differentiator
+
+Confidence-gated autonomy is the deployment posture for almost every defense and critical-infrastructure use case currently being scoped for AI. Curveball-class attacks are the natural threat against that posture. No other open framework currently composes Curveball detection with confidence scoring as a single auditable layer. This is the basis of the framework's defense-tier positioning &mdash; see [Defense positioning](/gov/threat-model).

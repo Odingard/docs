@@ -1,0 +1,67 @@
+---
+title: "Complexity analysis"
+description: "VERDICT WEIGHT runs in O(1) per decision in the core path; O(K) in the pipeline path."
+---
+
+## Why complexity matters
+
+A confidence layer that doubles inference latency is a confidence layer that does not get deployed. The framework is designed so that scoring cost is dominated by the upstream model evaluation, not by the scoring layer itself.
+
+This page summarizes the formal complexity bounds and the empirical wall-clock measurements that back them up.
+
+## Formal bounds
+
+| Operation | Complexity | Justification |
+|---|---|---|
+| Single-decision scoring (core streams 1&ndash;5) | O(1) | Each core stream operates on a fixed-size evidence vector and produces a fixed-size contribution. |
+| Single-decision scoring (full 8 streams) | O(1) (amortized) | Hardening streams 6&ndash;8 add fixed-cost operations: fingerprint comparison, hash chain append, registry hash check. |
+| Stream 3 with `perturbation_count = N` | O(N) | The configurable cost knob; N is typically 1&ndash;5. |
+| K-decision pipeline | O(K) | Linear in the number of decisions; no super-linear coupling. |
+| Audit chain verification (length N) | O(N) | Single pass; can be parallelized for offline verification. |
+
+The "amortized O(1)" qualifier on the full eight-stream cost reflects that hash-chain append occasionally triggers a checkpoint rotation, which is itself O(1) but with a higher constant.
+
+## What is *not* O(1)
+
+Two operations have non-constant complexity by design:
+
+1. **Stream 3 (Temporal stability)** with multiple perturbations is O(N) in the perturbation count, because it requires N additional model evaluations. This is the framework's most expensive single configuration knob; operators may set perturbations to 1 in latency-sensitive deployments.
+2. **Audit chain verification** is O(N) in chain length. This is unavoidable for a hash-chain integrity guarantee. Verification is typically run on startup and on demand, not on every scoring call.
+
+## Empirical wall-clock
+
+Measured on a modern laptop (M-series Apple Silicon, single-threaded), single-decision scoring with default configuration completes in **single-digit milliseconds** &mdash; well below the latency of any modern LLM call. The full empirical breakdown by stream and by configuration is in **Paper 2, Section 4.9**.
+
+The headline: **the scoring layer's contribution to end-to-end latency is operationally negligible** compared to the upstream model call it scores.
+
+## Memory profile
+
+| Component | Memory |
+|---|---|
+| Scorer instance (steady state) | constant |
+| Audit chain (in-memory cache) | linear in the number of cached records |
+| Calibration map | constant after fitting |
+
+The audit chain in-memory cache is configurable. Long-running deployments typically configure the cache to hold the last few thousand records and stream older records from disk on demand.
+
+## Throughput
+
+Throughput scales linearly with available cores in the multi-process configuration. Each process gets its own scorer instance and its own audit log; logs are reconciled offline. This is the recommended high-throughput posture and does not change the per-decision complexity bounds above.
+
+For deployments where reconciliation is operationally expensive, the framework supports a single-writer audit log with file-locking. Throughput in this configuration is bounded by lock contention rather than by scoring cost; the trade-off is documented in [Pipeline](/api/pipeline).
+
+## What this enables
+
+The complexity profile is what makes VERDICT WEIGHT viable in production rather than only in research:
+
+- **Latency-bound deployments** can afford to compose all eight streams without measurable end-to-end impact.
+- **High-throughput deployments** can scale linearly with cores.
+- **Audit-bound deployments** pay verification cost predictably and can plan around it (run on startup; re-run before regulatory submission; not on every call).
+
+## Reproducing the wall-clock numbers
+
+```bash
+python -m verdict_weight.benchmarks.complexity
+```
+
+The benchmark prints per-stream and per-configuration latency breakdowns. Results vary with hardware but ratios between configurations are stable across platforms.

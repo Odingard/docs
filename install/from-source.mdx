@@ -1,0 +1,69 @@
+---
+title: "Install from source"
+description: "Build VERDICT WEIGHT from the GitHub repository for development or audit."
+---
+
+## When to install from source
+
+Install from source if any of the following apply:
+
+- You are auditing the codebase before deployment.
+- You are contributing fixes or extensions.
+- Your environment requires reproduction from a specific commit hash.
+- You are building against an unreleased branch.
+
+For all other cases, use the [PyPI install path](/install/pypi).
+
+## Clone and install
+
+```bash
+git clone https://github.com/Odingard/verdict-weight.git
+cd verdict-weight
+pip install -e ".[dev]"
+```
+
+The `-e` flag installs in editable mode so changes to source are reflected immediately. The `[dev]` extra pulls in the test runner and linting tools.
+
+## Run the test suite
+
+After install, verify the full test suite passes locally:
+
+```bash
+pytest
+```
+
+You should see **673 tests across 27 suites** all passing. If any test fails, do not deploy that build &mdash; open an issue with the failure log.
+
+<Tip>
+  The test suite includes fuzz, mutation, differential, formal-verification, regression-lock, and concurrency suites. Total runtime is on the order of a few minutes on a modern laptop. See [Coverage overview](/testing/coverage-overview) for the full breakdown.
+</Tip>
+
+## Reproducing a published release
+
+To build against an exact published release:
+
+```bash
+git checkout vX.Y.Z   # replace with the desired tag
+pip install -e .
+```
+
+The release tags on GitHub correspond one-to-one with versions on PyPI and with archived snapshots on [Zenodo](https://doi.org/10.5281/zenodo.19447547).
+
+## Auditing the code before deploy
+
+If your organization requires source review before deployment:
+
+<Steps>
+  <Step title="Clone at a tagged release">
+    Always audit a tagged release, never `main`. `main` is a development branch.
+  </Step>
+  <Step title="Verify the Zenodo archive matches">
+    The Zenodo DOI snapshot should byte-match the GitHub tag of the same version. Compute SHA-256 of the source tarball from each and compare.
+  </Step>
+  <Step title="Run the full test suite">
+    `pytest` must pass cleanly. Any environment that cannot reproduce 673/673 should not be promoted.
+  </Step>
+  <Step title="Review the security streams in detail">
+    [Stream 6](/streams/06-sis-curveball-detection), [Stream 7](/streams/07-cps-hash-chain-integrity), and [Stream 8](/streams/08-ris-registry-kill-switch) carry the integrity guarantees and warrant the closest review.
+  </Step>
+</Steps>

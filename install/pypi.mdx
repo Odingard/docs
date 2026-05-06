@@ -1,0 +1,80 @@
+---
+title: "Install from PyPI"
+description: "The standard installation path for production use."
+---
+
+## Standard install
+
+VERDICT WEIGHT is published on PyPI as `verdict-weight`.
+
+<CodeGroup>
+```bash pip
+pip install verdict-weight
+```
+
+```bash uv
+uv pip install verdict-weight
+```
+
+```bash poetry
+poetry add verdict-weight
+```
+
+```bash conda
+pip install verdict-weight  # use pip inside conda env
+```
+</CodeGroup>
+
+## Pinning a version
+
+For reproducibility &mdash; particularly in regulated or audit-bound environments &mdash; pin an exact version:
+
+```bash
+pip install verdict-weight==X.Y.Z
+```
+
+Replace `X.Y.Z` with the version you have validated against your deployment. Refer to the [PyPI release history](https://pypi.org/project/verdict-weight/#history) for available versions.
+
+## Optional extras
+
+Some integrations are gated behind extras to keep the base install lean:
+
+```bash
+# Install with all optional extras.
+pip install "verdict-weight[all]"
+
+# Or pick specific ones.
+pip install "verdict-weight[crypto]"
+pip install "verdict-weight[benchmarks]"
+```
+
+| Extra | Purpose |
+|---|---|
+| `crypto` | Hardware-backed signing for the audit chain (Stream 7). |
+| `benchmarks` | Reference baselines used in [head-to-head comparison](/validation/head-to-head-comparison). |
+| `all` | All of the above. |
+
+## System requirements
+
+| Requirement | Minimum |
+|---|---|
+| Python | 3.10 |
+| OS | Linux / macOS / Windows |
+| RAM | 512 MB |
+| Disk | 50 MB |
+| Network | None at runtime |
+
+<Note>
+  VERDICT WEIGHT performs no outbound network calls during scoring. It is suitable for air-gapped and classified environments.
+</Note>
+
+## Verifying the install
+
+After installing, confirm the package is importable and the version is what you expect:
+
+```python
+import verdict_weight
+print(verdict_weight.__version__)
+```
+
+For a deeper integrity check, see [Verifying your install](/install/verification).

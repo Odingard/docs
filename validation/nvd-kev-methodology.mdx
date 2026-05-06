@@ -1,0 +1,74 @@
+---
+title: "NVD / KEV methodology"
+description: "How CVE records and KEV entries are mapped to evidence vectors and ground-truth labels."
+---
+
+## Sources
+
+| Source | Used for |
+|---|---|
+| [NIST National Vulnerability Database (NVD)](https://nvd.nist.gov/) | Per-CVE evidence (CVSS metrics, descriptions, references). |
+| [CISA Known Exploited Vulnerabilities (KEV)](https://www.cisa.gov/known-exploited-vulnerabilities-catalog) | Positive-class anchor for ground-truth labeling. |
+
+Both sources are public, freely accessible, and have stable record schemas suitable for reproducible benchmarking.
+
+## Snapshot strategy
+
+Public vulnerability data evolves continuously. To make the benchmark reproducible, the validation pipeline supports two modes:
+
+1. **Live mode**: pulls current data at benchmark time. Useful for ongoing internal validation.
+2. **Snapshot mode**: uses a pinned snapshot of NVD and KEV at a specified date. Required for cross-deployment comparison and for reproducing published results.
+
+The snapshot used for the published results is dated and identified in **Paper 2, Section 4.10**. Reproducing the published numbers requires snapshot mode with that specific date.
+
+## Evidence-vector construction
+
+Each CVE record is mapped to an evidence vector consumed by Stream 1. The mapping is fixed, documented, and published with the framework:
+
+| Evidence channel | Source field | Normalization |
+|---|---|---|
+| Exploit-availability | NVD `cvssV3.exploitabilityScore` | Linear scale to `[0, 1]`. |
+| Severity (vendor) | NVD `cvssV3.baseSeverity` | Ordinal mapping (low=0.25 ... critical=1.0). |
+| Reference quality | Count and type of references | Heuristic in `[0, 1]`. |
+| Description specificity | NVD `descriptions[*].value` length and entity density | Heuristic in `[0, 1]`. |
+| Vendor advisory | Presence of vendor security advisory in references | Binary. |
+
+The exact mapping code is in `verdict_weight/benchmarks/real_world/evidence.py`. Any change to the mapping changes the benchmark; published results pin the mapping version.
+
+## Ground-truth labeling
+
+A CVE is labeled positive (high confidence in real-world risk) if and only if it appears in the CISA KEV catalog at the snapshot date. This is a deliberately conservative labeling rule:
+
+- KEV inclusion is documented evidence of real-world exploitation.
+- Non-inclusion is not evidence of safety; many CVEs are exploited in the wild without being added to KEV. The benchmark therefore should be read as a *lower bound* on positive-class recall.
+
+Alternative labeling rules (e.g. "any CVE with a published proof-of-concept exploit") were considered and rejected for reproducibility reasons: published-PoC databases are less stable than KEV.
+
+## Class balance
+
+The 120-CVE dataset is class-balanced by construction: half the records are KEV-listed, half are not. Class-balanced benchmarking is the standard for calibration metrics, where imbalanced data can produce misleading reliability curves.
+
+For real deployments, the class distribution will differ. Refitting Stream 5's calibration map on representative data (see [Calibration](/streams/05-calibration)) is the appropriate response.
+
+## Filtering and exclusions
+
+The 120-CVE dataset is drawn from the NVD population by:
+
+1. Excluding records with missing CVSSv3 scores.
+2. Excluding records published in the last 30 days (insufficient time for KEV inclusion to settle).
+3. Stratified sampling to achieve class balance.
+4. Exclusions documented in the methodology code; nothing is excluded that is not visible in the published code.
+
+The full filtering pipeline is in `verdict_weight/benchmarks/real_world/select.py`.
+
+## Reproducibility
+
+```bash
+python -m verdict_weight.benchmarks.real_world --snapshot-date YYYY-MM-DD
+```
+
+With the published snapshot date, results match the published numbers to floating-point tolerance.
+
+## Limitations
+
+This benchmark is documented honestly because IEEE-grade peer review requires nothing less. See [Known limitations](/validation/known-limitations) for the full enumeration.

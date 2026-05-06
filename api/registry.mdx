@@ -1,0 +1,88 @@
+---
+title: "Registry"
+description: "Configuration registry, integrity hashing, and kill-switch interaction."
+---
+
+## What the registry is
+
+The configuration registry is a structured, hash-protected record of the deployment's intended state. It contains:
+
+- The framework version and self-check baseline.
+- The configured stream weights and thresholds.
+- The audit log path and signing-key fingerprint.
+- The kill-switch state and its recorded trigger history.
+
+The registry is loaded at scorer instantiation, hashed, and the hash is recorded in the audit chain. Any subsequent modification to the registry that is not done through the supported operator API will produce a hash mismatch and raise the kill switch.
+
+## Reading registry state
+
+```python
+from verdict_weight import Registry
+
+registry = Registry.load("registry.toml")
+
+print(registry.version)
+print(registry.config_hash)
+print(registry.kill_switch_raised)
+print(registry.kill_reason)        # populated only if raised
+print(registry.last_self_check)
+```
+
+## Inspecting kill-switch history
+
+```python
+for event in registry.kill_switch_history:
+    print(event.raised_at, event.reason, event.lowered_at)
+```
+
+The history is append-only. Lowering the kill switch produces a new event terminating the previous one; the previous event itself is never edited or removed.
+
+## Lowering the kill switch
+
+Lowering is a deliberate, audit-recorded operator action. It is exposed as an explicit method:
+
+```python
+registry.lower_kill_switch(
+    operator="andre.byrd@odingard.com",
+    justification="Audit chain restored from clean checkpoint v42; self-check passing.",
+    self_check_report=current_self_check,
+)
+```
+
+Required to succeed:
+
+1. The most recent self-check report must be passing.
+2. The triggering condition must no longer be present.
+3. An explicit operator identity and human-readable justification must be supplied.
+
+A lowered kill switch is itself recorded in the audit chain. There is no programmatic path that can lower the switch silently.
+
+## Programmatic raise (operator command)
+
+Operators can raise the kill switch directly &mdash; e.g. as part of an incident response procedure or scheduled maintenance:
+
+```python
+registry.raise_kill_switch(
+    operator="andre.byrd@odingard.com",
+    reason="Scheduled maintenance: rotating signing key.",
+)
+```
+
+Programmatic raises are no different from automatic raises in their effect: every subsequent scoring call returns abort until the switch is lowered.
+
+## Why the registry is hash-protected
+
+Without hash protection, an attacker who can modify the in-memory configuration of a running scorer could disable hardening streams, lower thresholds, or quietly turn off audit logging. The registry hash prevents this:
+
+- The hash is computed from the canonicalized registry state at startup.
+- It is recorded in the audit chain.
+- Every scoring call recomputes the hash and compares it to the recorded value.
+- A mismatch raises the kill switch immediately.
+
+This means a tampered registry produces an abort outcome on its next scoring call, regardless of whether the tampering was detected by any other mechanism.
+
+## File format
+
+The registry is stored as TOML for human readability and predictable canonicalization. The exact schema is versioned; older registries can be read for inspection but must be migrated before being used to instantiate a scorer.
+
+See the package source on [GitHub](https://github.com/Odingard/verdict-weight) for the current schema definition.
