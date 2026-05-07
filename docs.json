@@ -117,10 +117,7 @@
           {
             "group": "Papers",
             "pages": [
-              "research",
-              "papers/paper-1-foundation",
-              "papers/paper-2-empirical",
-              "papers/paper-3-architecture"
+              "research"
             ]
           }
         ]
