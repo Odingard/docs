@@ -90,6 +90,12 @@
         "tab": "Validation & Research",
         "groups": [
           {
+            "group": "Research",
+            "pages": [
+              "research"
+            ]
+          },
+          {
             "group": "IEEE Hardening",
             "pages": [
               "validation/head-to-head-comparison",

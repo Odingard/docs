@@ -1,0 +1,125 @@
+---
+title: 'Research'
+description: 'Peer-reviewed research, preprints, and reproducible benchmarks underlying VERDICT WEIGHT.'
+---
+
+VERDICT WEIGHT is built on four research papers, an open-source reference implementation, and a publicly reproducible validation harness. Every empirical claim in the framework's documentation traces back to a numbered result in one of the papers below, computed from a frozen-seed harness in the public repository.
+
+This page is the canonical citation surface for the work.
+
+## Foundational paper
+
+<Card title="VERDICT WEIGHT: A Context-Adaptive Multi-Source Confidence Synthesis Framework" icon="book-open" href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6532658">
+  **Andre Byrd · April 2026 · SSRN**
+
+  Establishes the four-stream commercial-tier framework: Source Reliability, Corroboration Count, Temporal Decay, and Historical Accuracy. Introduces the Doubt Index mechanism for structural adversarial suppression. Validated on N=10,000 synthetic scenarios.
+
+  Published on SSRN. DOI: 10.2139/ssrn.6532658
+</Card>
+
+**Headline results:** Brier 0.2079 [0.2036, 0.2122] · AUC 0.7499 [0.7405, 0.7592] · 57.8% adversarial suppression vs. single-source baseline · 5-fold CV stability ±0.0046
+
+**Distribution:** SSRN classified the paper across seven academic eJournals — Artificial Intelligence, Computing Methodology, Cybersecurity Privacy & Networks, Information Systems, Decision-Making Models & Tools, and two Cognitive Psychology subject areas (Memory & Learning; Thinking, Reasoning & Decision Making).
+
+## Adversarial detection extensions
+
+<Card title="VERDICT WEIGHT: Adversarial Trajectory Detection, Causal Attribution, and Information-Theoretic Bounds" icon="microscope">
+  **Andre Byrd · 2026 · Under peer review**
+
+  Three formal extensions to the foundational framework: Stream 5 (Cross-Temporal Consistency) for trajectory-based adversarial detection with a formal impossibility proof for spike-then-collapse trajectories under legitimate intelligence; Shapley causal attribution with proofs of all four axioms for the geometric mean composition; and Shannon channel capacity bounds providing information-theoretic ceilings on achievable confidence.
+</Card>
+
+**Headline results:** AC-3 trajectory fabrication mean CW 0.0007 (median 0.000) on N=1,000 adversarial trajectories · Cohen's d = −6.66 · AUC 1.000 · Brier 0.0536 · 0/120 false suppressions on real CISA KEV CVEs
+
+**Status:** Under peer review at an IEEE journal. Manuscript ID available on request.
+
+## Unified architecture
+
+<Card title="VERDICT WEIGHT: A Unified Eight-Stream Confidence Framework for Autonomous AI Systems" icon="diagram-project">
+  **Andre Byrd · 2026 · In preparation for AI methodology venue**
+
+  Presents the complete eight-stream architecture as a single composable framework with formal completeness proof against five adversarial attack classes. Specifies the government tier (Streams 6–8): Source Independence Score for Curveball-class corroboration manufacturing; Cryptographic Provenance Score with SHA-256 hash chain; Registry Integrity Score with binary kill-switch semantics. Demonstrates that AC-4 (provenance forgery) and AC-5 (registry compromise) reduce to CW = 0 with zero variance — a cryptographic guarantee, not a statistical one.
+</Card>
+
+**Headline results:** Brier substantially lower than the next-best classical baseline (0.0536 vs. 0.3139 for Simple Averaging) · AUC 1.000 across both synthetic and IEEE benchmarks · 0/120 false suppressions on CISA KEV · 3,803 scores/sec end-to-end at government tier
+
+**Status:** Manuscript in revision for submission to an IEEE AI methodology venue. The paper is the most recently completed of the three and is currently being polished against TAI-class reviewer expectations before submission.
+
+## Forthcoming: behavioral decision research
+
+<Card title="Calibration of Confidence Judgments in Autonomous AI Systems" icon="brain">
+  **Andre Byrd · forthcoming**
+
+  Extends the Lichtenstein–Fischhoff–Phillips (1977) calibration framework to composed multi-source decisioning in autonomous AI systems. Argues that AI confidence values inherit characteristic miscalibration patterns from the human expert judgment literature, and that the methodological apparatus developed for human calibration research (reliability diagrams, Brier score decomposition, calibration error metrics) transfers directly to autonomous AI evaluation. Mapping table connects the eight VERDICT WEIGHT streams to established concepts in behavioral decision research (Brunswik 1956, Knight 1921, Cooke 1991, Tetlock 2005).
+</Card>
+
+**Target venues:** Journal of Behavioral Decision Making, Organizational Behavior and Human Decision Processes, or Judgment and Decision Making.
+
+**Status:** In preparation. Expected submission mid-2027.
+
+## Reproducibility
+
+Every empirical claim is reproducible from a clean checkout with a single command:
+
+```bash
+git clone https://github.com/Odingard/verdict-weight && cd verdict-weight
+python -m venv .venv && . .venv/bin/activate && pip install -e ".[dev]"
+python -m validation.synthetic_validation --n 10000 --seed 42
+python -m benchmarks.ieee_head_to_head --n 2000 --seed 42
+python -m benchmarks.cve_validation --n 120 --seed 42
+python -m pytest tests/
+```
+
+Output JSONs land in `validation/results/` and `benchmarks/results/`. Diff against locally-run outputs should be empty.
+
+The validation harness includes 172 tests across five categories: 139 unit tests for per-stream behavior, 12 integration tests for composition rules, 13 property tests for algebraic invariants (S_SIS bounds, RIS hash collision resistance, CTC monotonicity, HALT absorbing semantics), 6 regression tests for fixed bugs (AUC tie-handling, CVE temporal-decay reference-time determinism), and 2 performance tests asserting throughput floors.
+
+All 172 tests pass on v1.2.0.
+
+## Datasets and benchmarks
+
+| Benchmark | N | Source | Reproducibility |
+|---|---|---|---|
+| Synthetic head-to-head | 10,000 | Generated, seed=42 | Dataset SHA-256: 40bc6e22… |
+| IEEE replication | 2,000 | Generated, seed=42 | Cross-run consistency: ΔBrier 0.0004 |
+| CISA KEV proxy | 120 | NIST NVD × CISA KEV | Snapshot 2026-04-30, deterministic sampling |
+
+The CISA KEV proxy is a real-world validation against the U.S. government's catalog of known exploited vulnerabilities, anchored to a frozen snapshot (`catalogVersion=2026.04.30`) for full reproducibility.
+
+## Citation
+
+If you cite VERDICT WEIGHT in academic work, please use:
+
+```bibtex
+@article{byrd2026verdictweight,
+  author  = {Byrd, Andre},
+  title   = {VERDICT WEIGHT: A Context-Adaptive Multi-Source Confidence Synthesis Framework for Autonomous AI Intelligence Systems},
+  journal = {SSRN},
+  year    = {2026},
+  doi     = {10.2139/ssrn.6532658}
+}
+
+@misc{byrd2026verdictweightcode,
+  author       = {Byrd, Andre},
+  title        = {VERDICT WEIGHT v1.2.0},
+  year         = {2026},
+  publisher    = {Zenodo},
+  doi          = {10.5281/zenodo.19447547},
+  howpublished = {\url{https://github.com/Odingard/verdict-weight}}
+}
+```
+
+## Intellectual property
+
+VERDICT WEIGHT™ is a registered trademark of Six Sense Enterprise Services LLC.
+
+- USPTO Provisional Patent Application **#64/032,606** (filed April 2026)
+- USPTO Trademark Registration **#99747827**
+- Zenodo DOI **10.5281/zenodo.19447547**
+- Open-source implementation: Apache-2.0 license
+
+## Inquiries
+
+Pilot inquiries, academic collaboration, and press: **andre.byrd@odingard.com**
+
+For specific questions about reproducing benchmarks or extending the framework, please open an issue on the [GitHub repository](https://github.com/Odingard/verdict-weight).
