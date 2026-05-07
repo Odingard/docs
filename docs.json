@@ -90,12 +90,6 @@
         "tab": "Validation & Research",
         "groups": [
           {
-            "group": "Research",
-            "pages": [
-              "research"
-            ]
-          },
-          {
             "group": "IEEE Hardening",
             "pages": [
               "validation/head-to-head-comparison",
@@ -123,6 +117,7 @@
           {
             "group": "Papers",
             "pages": [
+              "research",
               "papers/paper-1-foundation",
               "papers/paper-2-empirical",
               "papers/paper-3-architecture"
