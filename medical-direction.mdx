@@ -1,0 +1,98 @@
+---
+title: 'Medical Direction'
+description: 'Calibrated multi-source confidence as the technical substrate for next-generation medical AI deployment.'
+---
+
+VERDICT WEIGHT is a calibrated multi-source confidence framework originally validated on cybersecurity and threat intelligence benchmarks. The framework's structural properties — composable confidence streams, formal calibration guarantees, and structural adversarial robustness — generalize naturally to medical AI, where the calibration problem is well documented but structurally underaddressed.
+
+This page describes the medical research direction. For the underlying framework specification, see [Architecture](/architecture). For the full publication portfolio, see [Research](/research).
+
+## The medical AI calibration problem
+
+Modern medical AI systems make consequential decisions conditioned on confidence values produced by upstream models. A radiology classifier returns 0.87 for pneumonia. A clinical decision support system returns 0.92 for sepsis risk. A diagnostic AI returns 0.78 for malignancy.
+
+These numbers are typically uncalibrated. Among all chest radiographs where a deep learning classifier reports 0.87, the patient has pneumonia substantially less than 87% of the time — often closer to 60% or 70%. This miscalibration is well documented in the medical informatics literature and persists in current state-of-the-art models.
+
+The clinical consequence is operational. Clinicians cannot integrate uncalibrated confidence values into structured decision-making. Either the AI's confidence is ignored entirely (wasting the AI), or it is treated as a vague qualitative signal (losing the AI's precision). Either way, the confidence value's intended role as quantitative input to clinical reasoning fails.
+
+Recent literature confirms the problem is unsolved: parameter-efficient transfer learning approaches on chest X-ray classification report Expected Calibration Error in the range 0.29–0.34, with even simpler models producing ECE around 0.05 — far above the threshold required for clinically actionable confidence values.
+
+## The substrate position
+
+VERDICT WEIGHT addresses the medical AI calibration problem differently from existing approaches. Standard medical AI calibration applies post-hoc transformations (Platt scaling, isotonic regression, temperature scaling) to single-model outputs. These methods can improve calibration but cannot address the structural multi-source nature of medical decisioning, where multiple AI systems, multiple human experts, and multiple evidence sources contribute to a single clinical decision.
+
+The framework's eight-stream architecture provides:
+
+<CardGroup cols={2}>
+  <Card title="Calibrated multi-source confidence" icon="chart-line">
+    Source reliability, corroboration count, historical accuracy, and doubt index streams produce calibrated confidence values from heterogeneous medical evidence — model outputs, radiologist annotations, lab results, clinical history.
+  </Card>
+  <Card title="Structural audit-defensibility" icon="shield-check">
+    Per-stream contribution accounting provides natural audit trails for clinical decisions, addressing the regulatory transparency requirements outlined in FDA AI/ML Software as a Medical Device guidance.
+  </Card>
+  <Card title="Adversarial robustness for medical imaging" icon="lock">
+    Trajectory and source-independence detection layers identify perturbed inputs that compromise model confidence, an emerging concern as medical AI faces increasingly sophisticated attack scenarios.
+  </Card>
+  <Card title="Cross-modal source integration" icon="arrows-to-circle">
+    The framework's source-agnostic architecture handles imaging, structured clinical data, free-text reports, and longitudinal observations within a single confidence-scoring pipeline.
+  </Card>
+</CardGroup>
+
+This is not a vertical extension of an existing tool. It is the technical substrate that makes the next generation of multi-agent medical AI deployable in regulated clinical settings.
+
+## Empirical foundation
+
+The framework is currently being applied to public medical benchmarks to establish empirical credibility for medical AI applications.
+
+<Card title="Foundational empirical work" icon="microscope">
+  **Status:** in preparation
+
+  Application of VERDICT WEIGHT's calibration-relevant streams (Source Reliability, Corroboration / Doubt Index, Historical Accuracy) to chest radiograph multi-source classification, validated against the established calibration baselines on the CheXpert dataset (Irvin et al., AAAI 2019). The work targets three specific contributions to medical AI calibration: native handling of uncertain radiologist labels, integration of multi-radiologist disagreement signals, and per-radiologist historical accuracy weighting — each addressing limitations of standard post-hoc calibration approaches.
+
+  A separate sub-experiment evaluates calibration-preserving adversarial robustness on chest radiographs, a category not currently addressed in the medical AI adversarial robustness literature.
+
+  The work follows pre-registration discipline (OSF), uses public datasets only, and will release reproducible validation harnesses upon publication.
+</Card>
+
+## Architectural fit
+
+Medical AI deployment patterns vary substantially across imaging modalities, clinical settings, and decision contexts. Not every stream of the VERDICT WEIGHT framework applies to every medical AI scenario, and we are explicit about this.
+
+For static-image classification tasks like chest radiography:
+
+| Stream | Applies | Mapping to medical data |
+|---|---|---|
+| Source Reliability | Yes | Per-model and per-radiologist calibration scores |
+| Corroboration / Doubt Index | Yes | Inter-radiologist agreement, model-radiologist agreement, uncertain-label encoding |
+| Temporal Decay | Not applicable | No time-since-acquisition signal in static images |
+| Historical Accuracy | Yes | Per-radiologist Bayesian posterior on diagnostic accuracy |
+| Cross-Temporal Consistency | Not applicable | No diagnostic trajectory in static images |
+| Source Independence | Adversarial scenarios only | Detects perturbation-induced source decoupling |
+| Cryptographic Provenance | Future work | Image provenance and registry integrity for audit trails |
+| Registry Integrity | Future work | Source registry for radiologist credentialing |
+
+For longitudinal clinical decision support (ICU monitoring, disease progression tracking, multi-visit diagnostic refinement), the temporal and trajectory streams become directly applicable, opening a separate research direction.
+
+For multi-agent diagnostic AI — where multiple AI systems engage in structured debate or consensus formation before producing a final recommendation — a multi-agent extension to the framework is in development. Multi-agent diagnostic systems are emerging as a deployment pattern in 2026, and the calibration of consensus confidence in such systems is currently an open research question.
+
+## Collaboration
+
+The medical research direction benefits significantly from clinical collaboration. We are particularly interested in working with:
+
+- **Chest radiologists** with active diagnostic-AI research interest, for the foundational empirical work
+- **Internal medicine and hospitalist physicians** with multi-agent diagnostic AI deployment experience, for the multi-agent extension
+- **Clinical informatics directors** at academic medical centers with active AI deployment infrastructure, for translational work toward clinical decision support
+
+If you are a clinician working in medical AI calibration, multi-source diagnostic decisioning, or AI-augmented clinical decision support, we'd welcome a conversation. The framework is open-source under Apache-2.0, and the medical-direction work is structured around public datasets for full reproducibility.
+
+## Inquiries
+
+For collaboration, pilot inquiries, or academic discussion: **andre.byrd@odingard.com**
+
+For the foundational framework specification, validation harness, and reproducibility commitments: see [Architecture](/architecture) and [Research](/research).
+
+## Honest scope
+
+The medical direction is a research arc in active development, not a deployed clinical product. No clinical claims are made. The framework's medical applications are being validated empirically on public benchmarks; results will be published in peer-reviewed venues following pre-registration discipline. Clinical deployment requires regulatory pathway considerations (FDA AI/ML SaMD guidance) and institutional partnerships that are beyond the scope of the current work.
+
+The cybersecurity-domain validation (eight-stream framework, AUC 1.000 on synthetic adversarial benchmarks, 0/120 false suppressions on real CISA KEV vulnerabilities) does not by itself prove the framework's effectiveness on medical data. Empirical validation in the medical domain is required, in progress, and will be reported transparently regardless of outcome.
